@@ -66,9 +66,8 @@ html { scroll-behavior: smooth; font-size: 16px; }
      Redder hue prevents the "brown" look at this exact lightness level. */
   --orange: #c94900;
   
-  /* OPTICAL MATCH: The exact same hex looks brighter/neon on dark backgrounds due to 
-     Simultaneous Contrast. This darker shade visually matches the main orange perfectly. */
-  --orange-on-dark: #b54200; 
+  /* OPTICAL MATCH: Reverted to the main orange to ensure no brown/dark tints appear on the hero text and checkmarks. */
+  --orange-on-dark: #c94900; 
 
   /* HOVER STATE: A natural, deeper shade for interactions. */
   --orange-hover: #9e3900;
@@ -1461,7 +1460,7 @@ footer {
     <div class="testi-header anim-up">
       <div>
         <span class="section-tag">Customer Reviews</span>
-        <h2 class="section-h2">What Homeowners <span class="accent">Say</span></h2>
+        <h2 class="section-h2">What Homeowners Say</h2>
       </div>
       <div class="rating-summary">
         <div class="big-stars">
