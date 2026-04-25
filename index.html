@@ -5,12 +5,27 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tiger Drywall — Professional Drywall Repair | Columbia, MO</title>
 <meta name="description" content="Tiger Drywall is Columbia, MO's trusted drywall repair specialist. Hole repair, water damage, texture matching. Free estimates. Licensed & insured.">
+
+<!-- FIX #9: Theme color meta tag -->
+<meta name="theme-color" content="#c96a10">
+
+<!-- FIX #9: Inline SVG favicon — no file needed -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='12' fill='%23c96a10'/><text y='75' font-size='62' text-anchor='middle' x='50' fill='white' font-weight='bold' font-family='Arial'>T</text></svg>">
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='12' fill='%23c96a10'/><text y='75' font-size='62' text-anchor='middle' x='50' fill='white' font-weight='bold' font-family='Arial'>T</text></svg>">
+
+<!-- FIX #2: Preload hero background image at reduced size -->
+<link rel="preload" as="image"
+  href="https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=1200&q=50&fm=webp"
+  fetchpriority="high">
+
+<!-- FIX #3: Non-blocking Google Fonts load -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@400;500;600;700&display=swap" rel="stylesheet">
-<!-- Added defer to prevent render-blocking -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js" defer></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js" defer></script>
+<link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@400;500;600;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@400;500;600;700&display=swap"></noscript>
+
+<!-- FIX #1: GSAP scripts REMOVED — replaced with native CSS + Intersection Observer below -->
+
 <style>
 /* ─────────────────────────────────────────────
    RESET & VARIABLES
@@ -19,8 +34,9 @@
 html { scroll-behavior: smooth; font-size: 16px; }
 
 :root {
-  --orange: #e87722;
-  --orange-dark: #c9651a;
+  /* FIX #6: Darkened orange from #e87722 to #c96a10 to pass WCAG AA contrast (white on orange) */
+  --orange: #c96a10;
+  --orange-dark: #a85510;
   --orange-light: #fff0e4;
   --navy: #1a2744;
   --navy-dark: #0f172a;
@@ -158,7 +174,8 @@ nav {
 .hero-bg {
   position: absolute;
   inset: 0;
-  background-image: url('https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=1900&q=85');
+  /* FIX #2: Reduced size (w=1200, q=50) and WebP format for ~60% smaller file */
+  background-image: url('https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=1200&q=50&fm=webp');
   background-size: cover;
   background-position: center;
   opacity: 0.15;
@@ -287,7 +304,8 @@ nav {
   border-radius: 12px 12px 0 0;
 }
 .form-header { text-align: center; margin-bottom: 24px; }
-.form-header h3 {
+/* FIX #7: Changed from h3 to h2 in HTML to fix heading order */
+.form-header h2 {
   font-family: 'Oswald', sans-serif;
   font-size: 2rem;
   font-weight: 700;
@@ -495,7 +513,8 @@ section.std { padding: 96px 0; }
 }
 .ba-after .ba-label { left: auto; right: 12px; }
 .ba-body { padding: 24px; background: var(--off-white); }
-.ba-body h4 {
+/* FIX #7: h4 → h3 in HTML; updated selector accordingly */
+.ba-body h3 {
   font-family: 'Oswald', sans-serif;
   font-size: 1.25rem;
   color: var(--navy-dark);
@@ -557,12 +576,20 @@ section.std { padding: 96px 0; }
   transform: translateY(-6px);
   box-shadow: 0 16px 32px rgba(0,0,0,0.08);
 }
+/* FIX #4: service-img now wraps an <img> tag with lazy loading */
 .service-img {
   width: 100%;
   height: 200px;
-  background-size: cover;
-  background-position: center;
+  overflow: hidden;
   position: relative;
+  flex-shrink: 0;
+}
+.service-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
 }
 .service-body {
   padding: 28px 24px;
@@ -623,7 +650,8 @@ section.std { padding: 96px 0; }
   flex-shrink: 0;
   opacity: 0.9;
 }
-.why-point h4 {
+/* FIX #7: h4 → h3 in HTML; updated selector accordingly */
+.why-point h3 {
   font-family: 'Oswald', sans-serif;
   font-size: 1.25rem;
   font-weight: 600;
@@ -692,7 +720,8 @@ section.std { padding: 96px 0; }
   stroke-linejoin: round;
   fill: none;
 }
-.process-step h4 {
+/* FIX #7: h4 → h3 in HTML; updated selector accordingly */
+.process-step h3 {
   font-family: 'Oswald', sans-serif;
   font-size: 1.15rem;
   font-weight: 600;
@@ -830,7 +859,8 @@ footer {
 }
 .footer-brand .logo-name { color: #fff; }
 .footer-brand p { margin-top: 20px; max-width: 300px; font-size: 0.95rem; line-height: 1.6; }
-.footer-col h5 {
+/* FIX #7: h5 → h3 in HTML; updated selector accordingly */
+.footer-col h3 {
   color: #fff;
   font-family: 'Oswald', sans-serif;
   font-size: 1.2rem;
@@ -852,9 +882,22 @@ footer {
 }
 
 /* ─────────────────────────────────────────────
-   ANIMATION INITIAL STATES
+   FIX #1: ANIMATION — native CSS instead of GSAP
+   Initial hidden state + transition
 ───────────────────────────────────────────── */
-.anim-up   { opacity: 0; transform: translateY(30px); }
+.anim-up {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+.anim-up.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+/* Staggered delays for elements with inline animation-delay */
+.anim-up[style*="animation-delay: 0.1s"] { transition-delay: 0.1s; }
+.anim-up[style*="animation-delay: 0.2s"] { transition-delay: 0.2s; }
+.anim-up[style*="animation-delay: 0.3s"] { transition-delay: 0.3s; }
 
 /* ─────────────────────────────────────────────
    RESPONSIVE (MOBILE OPTIMIZED)
@@ -897,7 +940,7 @@ footer {
   .process-steps::before { display: none; }
   .step-circle { width: 56px; height: 56px; margin-bottom: 12px; }
   .step-circle svg { width: 24px; height: 24px; }
-  .process-step h4 { font-size: 1rem; margin-bottom: 6px; }
+  .process-step h3 { font-size: 1rem; margin-bottom: 6px; }
   .process-step p { font-size: 0.85rem; }
   .why-points-grid { grid-template-columns: 1fr; gap: 32px; }
   .services-grid, .testi-grid, .ba-grid { grid-template-columns: 1fr; }
@@ -942,7 +985,8 @@ footer {
 <!-- ── NAV ── -->
 <nav>
   <div class="nav-inner">
-    <a href="#" class="logo">
+    <!-- FIX #8: Added aria-label to logo link; changed href to "/" -->
+    <a href="/" class="logo" aria-label="Tiger Drywall — Home">
       <div class="logo-mark">
         <svg viewBox="0 0 24 24"><path d="M12 3L2 12h3v8h5v-5h4v5h5v-8h3L12 3z"/></svg>
       </div>
@@ -1008,7 +1052,8 @@ footer {
     <!-- Hero Form -->
     <div class="hero-form-wrapper" id="estimate">
       <div class="form-header">
-        <h3>Free Estimate</h3>
+        <!-- FIX #7: h3 → h2 to fix heading order (page goes h1 → h2 now) -->
+        <h2>Free Estimate</h2>
         <p>Enter your details. We respond in under 1 hour.</p>
       </div>
       <form class="cro-form" onsubmit="event.preventDefault();">
@@ -1039,7 +1084,6 @@ footer {
   <div class="trust-grid">
     <div class="trust-card anim-up">
       <div class="trust-icon-wrap">
-        <!-- Satisfaction / Award Icon -->
         <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="7"></circle><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline></svg>
       </div>
       <h4>100% Satisfaction</h4>
@@ -1047,7 +1091,6 @@ footer {
     </div>
     <div class="trust-card anim-up" style="animation-delay: 0.1s;">
       <div class="trust-icon-wrap">
-        <!-- Clock Icon -->
         <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
       </div>
       <h4>Save Time</h4>
@@ -1055,7 +1098,6 @@ footer {
     </div>
     <div class="trust-card anim-up" style="animation-delay: 0.2s;">
       <div class="trust-icon-wrap">
-        <!-- Shield Check Icon -->
         <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><polyline points="9 12 11 14 15 10"></polyline></svg>
       </div>
       <h4>Pro Technicians</h4>
@@ -1063,7 +1105,6 @@ footer {
     </div>
     <div class="trust-card anim-up" style="animation-delay: 0.3s;">
       <div class="trust-icon-wrap">
-        <!-- Seamless Match / Layers Icon -->
         <svg viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
       </div>
       <h4>Seamless Match</h4>
@@ -1083,31 +1124,34 @@ footer {
     <div class="ba-grid">
       <div class="ba-card anim-up">
         <div class="ba-images">
-          <div class="ba-before" style="background-image: url('https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80');">
+          <!-- FIX #5: Added &fm=webp to all Unsplash URLs -->
+          <div class="ba-before" style="background-image: url('https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80&fm=webp');">
             <span class="ba-label">Before</span>
           </div>
-          <div class="ba-after" style="background-image: url('https://images.unsplash.com/photo-1615874959474-d609969a20ed?w=600&q=80');">
+          <div class="ba-after" style="background-image: url('https://images.unsplash.com/photo-1615874959474-d609969a20ed?w=600&q=80&fm=webp');">
             <span class="ba-label">After</span>
           </div>
           <div class="ba-divider"></div>
         </div>
         <div class="ba-body">
-          <h4>Plumbing Access Hole</h4>
+          <!-- FIX #7: h4 → h3 to maintain sequential heading order -->
+          <h3>Plumbing Access Hole</h3>
           <p>Repaired, mudded, sanded, and texture-matched perfectly to the surrounding knockdown finish.</p>
         </div>
       </div>
       <div class="ba-card anim-up" style="animation-delay: 0.1s;">
         <div class="ba-images">
-          <div class="ba-before" style="background-image: url('https://images.unsplash.com/photo-1565538810643-b5bdb714032a?w=600&q=80');">
+          <div class="ba-before" style="background-image: url('https://images.unsplash.com/photo-1565538810643-b5bdb714032a?w=600&q=80&fm=webp');">
             <span class="ba-label">Before</span>
           </div>
-          <div class="ba-after" style="background-image: url('https://images.unsplash.com/photo-1572120360610-d971b9d7767c?w=600&q=80');">
+          <div class="ba-after" style="background-image: url('https://images.unsplash.com/photo-1572120360610-d971b9d7767c?w=600&q=80&fm=webp');">
             <span class="ba-label">After</span>
           </div>
           <div class="ba-divider"></div>
         </div>
         <div class="ba-body">
-          <h4>Ceiling Water Damage</h4>
+          <!-- FIX #7: h4 → h3 -->
+          <h3>Ceiling Water Damage</h3>
           <p>Damaged drywall removed, new panel installed, taped, and skim-coated to a flawless smooth finish.</p>
         </div>
       </div>
@@ -1127,7 +1171,12 @@ footer {
     
     <div class="services-grid">
       <div class="service-card anim-up">
-        <div class="service-img" style="background-image: url('https://images.unsplash.com/photo-1581094651181-35942459ef62?w=600&q=80');"></div>
+        <!-- FIX #4: Converted from CSS background-image div to <img loading="lazy"> -->
+        <!-- FIX #5: Added &fm=webp for WebP format -->
+        <div class="service-img">
+          <img src="https://images.unsplash.com/photo-1581094651181-35942459ef62?w=600&q=80&fm=webp"
+               alt="Hole and dent drywall repair" loading="lazy" width="600" height="200">
+        </div>
         <div class="service-body">
           <h3>Hole & Dent Repair</h3>
           <p>Door knobs, furniture moving, or anchors — we patch any size hole and blend the finish seamlessly into the surrounding wall.</p>
@@ -1136,7 +1185,10 @@ footer {
       </div>
 
       <div class="service-card anim-up" style="animation-delay: 0.1s;">
-        <div class="service-img" style="background-image: url('https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=600&q=80');"></div>
+        <div class="service-img">
+          <img src="https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=600&q=80&fm=webp"
+               alt="Water damage drywall repair" loading="lazy" width="600" height="200">
+        </div>
         <div class="service-body">
           <h3>Water Damage</h3>
           <p>Ceiling and wall damage from plumbing leaks — properly cut out, dried, repaired, and paint-ready with no lingering stains.</p>
@@ -1145,7 +1197,10 @@ footer {
       </div>
 
       <div class="service-card anim-up">
-        <div class="service-img" style="background-image: url('https://images.unsplash.com/photo-1565538810643-b5bdb714032a?w=600&q=80');"></div>
+        <div class="service-img">
+          <img src="https://images.unsplash.com/photo-1565538810643-b5bdb714032a?w=600&q=80&fm=webp"
+               alt="Drywall texture matching service" loading="lazy" width="600" height="200">
+        </div>
         <div class="service-body">
           <h3>Texture Matching</h3>
           <p>Orange peel, knockdown, smooth, or popcorn. Our experts match your existing finish exactly for truly invisible results.</p>
@@ -1154,7 +1209,10 @@ footer {
       </div>
 
       <div class="service-card anim-up" style="animation-delay: 0.1s;">
-        <div class="service-img" style="background-image: url('https://images.unsplash.com/photo-1572120360610-d971b9d7767c?w=600&q=80'); background-position: center top;"></div>
+        <div class="service-img">
+          <img src="https://images.unsplash.com/photo-1572120360610-d971b9d7767c?w=600&q=80&fm=webp"
+               alt="Ceiling drywall repair" loading="lazy" width="600" height="200" style="object-position: center top;">
+        </div>
         <div class="service-body">
           <h3>Ceiling Repair</h3>
           <p>Sagging panels, joint tape issues, and water stains — overhead ceiling work done neatly and safely every time.</p>
@@ -1178,28 +1236,29 @@ footer {
       <div class="why-point anim-up">
         <div class="why-num">01</div>
         <div>
-          <h4>Drywall Only — No Distractions</h4>
+          <!-- FIX #7: h4 → h3 -->
+          <h3>Drywall Only — No Distractions</h3>
           <p>We don't split our attention across twenty trades. Drywall repair is all we do, which means you get a dedicated specialist, not a generalist.</p>
         </div>
       </div>
       <div class="why-point anim-up" style="animation-delay: 0.1s;">
         <div class="why-num">02</div>
         <div>
-          <h4>Invisible Repairs</h4>
+          <h3>Invisible Repairs</h3>
           <p>Our technicians take pride in results you can't see. We provide expertly blended, smooth, and paint-ready walls with no telltale patches.</p>
         </div>
       </div>
       <div class="why-point anim-up">
         <div class="why-num">03</div>
         <div>
-          <h4>Upfront, Flat Pricing</h4>
+          <h3>Upfront, Flat Pricing</h3>
           <p>You get a clear, honest quote before we start. No surprises, no hidden materials fees, and no hourly rate that spirals out of control.</p>
         </div>
       </div>
       <div class="why-point anim-up" style="animation-delay: 0.1s;">
         <div class="why-num">04</div>
         <div>
-          <h4>Respect for Your Home</h4>
+          <h3>Respect for Your Home</h3>
           <p>We show up on time, protect your floors and furniture, clean up the worksite fully, and leave only flawless walls behind.</p>
         </div>
       </div>
@@ -1218,34 +1277,31 @@ footer {
     <div class="process-steps">
       <div class="process-step anim-up">
         <div class="step-circle">
-          <!-- Quote Icon -->
           <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
         </div>
-        <h4>Request a Quote</h4>
+        <!-- FIX #7: h4 → h3 -->
+        <h3>Request a Quote</h3>
         <p>Call or fill out our form. We respond same day — usually within the hour.</p>
       </div>
       <div class="process-step anim-up" style="animation-delay: 0.1s;">
         <div class="step-circle">
-          <!-- Estimate Icon -->
           <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
         </div>
-        <h4>Get an Estimate</h4>
+        <h3>Get an Estimate</h3>
         <p>A technician assesses the damage, and gives you a flat-rate quote.</p>
       </div>
       <div class="process-step anim-up" style="animation-delay: 0.2s;">
         <div class="step-circle">
-          <!-- Tool Icon -->
           <svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>
         </div>
-        <h4>We Repair It</h4>
+        <h3>We Repair It</h3>
         <p>Work begins on your schedule. Most repairs finish in one visit.</p>
       </div>
       <div class="process-step anim-up" style="animation-delay: 0.3s;">
         <div class="step-circle">
-          <!-- Checkmark Icon -->
           <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
         </div>
-        <h4>Perfect Results</h4>
+        <h3>Perfect Results</h3>
         <p>We clean up, you inspect, and we leave you fully satisfied.</p>
       </div>
     </div>
@@ -1322,7 +1378,8 @@ footer {
       <p>Columbia, Missouri's trusted drywall repair specialists. Serving homeowners and businesses since 2015.</p>
     </div>
     <div class="footer-col">
-      <h5>Services</h5>
+      <!-- FIX #7: h5 → h3 to fix heading hierarchy -->
+      <h3>Services</h3>
       <ul>
         <li><a href="#">Hole & Dent Repair</a></li>
         <li><a href="#">Water Damage</a></li>
@@ -1331,7 +1388,8 @@ footer {
       </ul>
     </div>
     <div class="footer-col">
-      <h5>Contact</h5>
+      <!-- FIX #7: h5 → h3 -->
+      <h3>Contact</h3>
       <ul>
         <li><a href="tel:5735551234">(573) 555-1234</a></li>
         <li><a href="mailto:info@tigerdrywall.com">info@tigerdrywall.com</a></li>
@@ -1347,43 +1405,39 @@ footer {
 </footer>
 
 <!-- ── SCRIPTS ── -->
+<!-- FIX #1: GSAP completely removed. Replaced with native Intersection Observer. -->
+<!-- FIX #3: Smooth scroll polyfill not needed — scroll-behavior: smooth handles it in CSS -->
 <script>
-// Wrap script inside DOMContentLoaded to ensure deferred scripts have loaded first
-document.addEventListener('DOMContentLoaded', (event) => {
-    gsap.registerPlugin(ScrollTrigger);
-
-    // Smooth scroll for anchor links
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function (e) {
-            e.preventDefault();
-            const target = document.querySelector(this.getAttribute('href'));
-            if(target) {
-                const headerOffset = 100;
-                const elementPosition = target.getBoundingClientRect().top;
-                const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-                window.scrollTo({
-                    top: offsetPosition,
-                    behavior: "smooth"
-                });
-            }
-        });
-    });
-
-    // Scroll Animations
-    document.querySelectorAll('.anim-up').forEach((el, i) => {
-      gsap.to(el, {
-        opacity: 1, 
-        y: 0, 
-        duration: 0.8, 
-        ease: 'power2.out',
-        scrollTrigger: {
-          trigger: el,
-          start: 'top 85%',
-          toggleActions: 'play none none none'
-        }
-      });
-    });
+// Smooth scroll for anchor links
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+  anchor.addEventListener('click', function (e) {
+    e.preventDefault();
+    const target = document.querySelector(this.getAttribute('href'));
+    if (target) {
+      const headerOffset = 100;
+      const elementPosition = target.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+      window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
+    }
+  });
 });
+
+// FIX #1: Native scroll animations — replaces GSAP + ScrollTrigger entirely
+// Zero third-party JS, zero render blocking
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('is-visible');
+      // Stop observing once visible — no need to toggle back
+      observer.unobserve(entry.target);
+    }
+  });
+}, {
+  rootMargin: '0px 0px -10% 0px',
+  threshold: 0.05
+});
+
+document.querySelectorAll('.anim-up').forEach(el => observer.observe(el));
 </script>
 </body>
 </html>
