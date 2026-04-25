@@ -42,11 +42,14 @@
   @font-face {
     font-family: 'Oswald';
     src: local('Arial Narrow'), local('ArialNarrow');
-    size-adjust: 108%;
-    ascent-override: 88%;
-    descent-override: 22%;
+    size-adjust: 105%;
+    ascent-override: 92%;
+    descent-override: 20%;
     line-gap-override: 0%;
   }
+  /* Prevent CLS: hero-h1 min-height locks space before Oswald loads */
+  .hero-h1 { min-height: 1em; }
+  .hero-checklist li { min-height: 1.6em; }
 </style>
 
 <!-- FIX #1: GSAP scripts REMOVED — replaced with native CSS + Intersection Observer below -->
@@ -59,9 +62,10 @@
 html { scroll-behavior: smooth; font-size: 16px; }
 
 :root {
-  /* FIX #6: Darkened orange from #e87722 to #c96a10 to pass WCAG AA contrast (white on orange) */
+  /* FIX #6: Darkened orange from #c96a10 to #9e5209 on interactive elements to pass WCAG AA contrast (white on orange needs 4.5:1; #9e5209 = 5.1:1) */
   --orange: #c96a10;
-  --orange-dark: #a85510;
+  --orange-dark: #7d4008;
+  --orange-cta: #9e5209;      /* AA-compliant orange for white-text buttons */
   --orange-light: #fff0e4;
   --navy: #1a2744;
   --navy-dark: #0f172a;
@@ -172,7 +176,7 @@ nav {
 }
 .nav-phone svg { width: 18px; height: 18px; fill: var(--orange); }
 .nav-cta {
-  background: var(--orange);
+  background: var(--orange-cta);
   color: #fff !important;
   padding: 12px 28px;
   border-radius: 6px;
@@ -287,7 +291,7 @@ nav {
   flex-wrap: wrap;
 }
 .btn-primary {
-  background: var(--orange);
+  background: var(--orange-cta);
   color: #fff;
   font-family: 'Oswald', sans-serif;
   font-size: 1.1rem;
@@ -368,7 +372,7 @@ select.form-input {
   cursor: pointer;
 }
 .form-submit {
-  background: var(--orange);
+  background: var(--orange-cta);
   color: #fff;
   border: none;
   width: 100%;
@@ -441,7 +445,7 @@ select.form-input {
   stroke-linejoin: round; 
   fill: none; 
 }
-.trust-card h4 {
+.trust-card h3 {
   font-family: 'Oswald', sans-serif;
   font-size: 1.25rem;
   font-weight: 700;
@@ -932,11 +936,10 @@ footer {
   font-size: 0.9rem;
 }
 
-/* ─────────────────────────────────────────────
-   FIX B: content-visibility — skip rendering off-screen sections entirely
-   until they approach the viewport. Free ~30-50% rendering time on long pages.
-   contain-intrinsic-size reserves space so scroll height stays correct.
-───────────────────────────────────────────── */
+/* content-visibility: auto REMOVED — causes 6s+ of Style & Layout thrash
+   and 17 long tasks in Chromium (known bug with image-containing sections).
+   The TBT penalty (2210ms) far outweighs any theoretical rendering savings.
+   Using contain:layout style instead — scopes style recalcs without the bug. */
 .ba-section,
 .services,
 .why,
@@ -944,8 +947,7 @@ footer {
 .testimonials,
 .cta-band,
 footer {
-  content-visibility: auto;
-  contain-intrinsic-size: 0 600px;
+  contain: layout style;
 }
 
 /* ─────────────────────────────────────────────
@@ -1012,7 +1014,7 @@ footer {
   .trust-card { padding: 0; }
   .trust-icon-wrap { width: 48px; height: 48px; margin-bottom: 12px; }
   .trust-icon-wrap svg { width: 24px; height: 24px; }
-  .trust-card h4 { font-size: 1rem; margin-bottom: 6px; }
+  .trust-card h3 { font-size: 1rem; margin-bottom: 6px; }
   .trust-card p { font-size: 0.85rem; }
   .process-steps { grid-template-columns: repeat(2, 1fr); gap: 40px 16px; }
   .process-steps::before { display: none; }
@@ -1186,28 +1188,28 @@ footer {
       <div class="trust-icon-wrap">
         <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="7"></circle><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline></svg>
       </div>
-      <h4>100% Satisfaction</h4>
+      <h3>100% Satisfaction</h3>
       <p>We are not finished until you are completely happy with the repair.</p>
     </div>
     <div class="trust-card">
       <div class="trust-icon-wrap">
         <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
       </div>
-      <h4>Save Time</h4>
+      <h3>Save Time</h3>
       <p>Fast, reliable service. Most small to medium repairs are completed in one day.</p>
     </div>
     <div class="trust-card">
       <div class="trust-icon-wrap">
         <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><polyline points="9 12 11 14 15 10"></polyline></svg>
       </div>
-      <h4>Pro Technicians</h4>
+      <h3>Pro Technicians</h3>
       <p>Fully licensed and insured experts who respect your home and keep it clean.</p>
     </div>
     <div class="trust-card">
       <div class="trust-icon-wrap">
         <svg viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
       </div>
-      <h4>Seamless Match</h4>
+      <h3>Seamless Match</h3>
       <p>Expert patching and texture blending so the damage truly disappears.</p>
     </div>
   </div>
@@ -1537,28 +1539,9 @@ footer {
      the browser can finish painting the LCP element BEFORE running any JS.
      This directly reduces Total Blocking Time. -->
 <script>
-// FIX #1: Wrap everything in requestIdleCallback so JS runs only after
-// the browser has finished its critical rendering work (LCP paint, layout, etc.)
-// Falls back to setTimeout for Safari which didn't support rIC until Safari 16.
-(window.requestIdleCallback || function(cb){ setTimeout(cb, 1); })(function() {
-
-  // Smooth scroll for anchor links
-  document.querySelectorAll('a[href^="#"]').forEach(function(anchor) {
-    anchor.addEventListener('click', function(e) {
-      var href = this.getAttribute('href');
-      if (href === '#') return;
-      var target = document.querySelector(href);
-      if (target) {
-        e.preventDefault();
-        var headerOffset = 100;
-        var elementPosition = target.getBoundingClientRect().top;
-        var offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-        window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
-      }
-    });
-  });
-
-  // FIX #1: Native IntersectionObserver scroll animations — zero third-party JS
+// Intersection Observer for scroll animations — runs immediately at DOMContentLoaded,
+// zero blocking time since IntersectionObserver API itself is non-blocking.
+document.addEventListener('DOMContentLoaded', function() {
   var observer = new IntersectionObserver(function(entries) {
     entries.forEach(function(entry) {
       if (entry.isIntersecting) {
@@ -1566,16 +1549,28 @@ footer {
         observer.unobserve(entry.target);
       }
     });
-  }, {
-    rootMargin: '0px 0px -10% 0px',
-    threshold: 0.05
-  });
+  }, { rootMargin: '0px 0px -10% 0px', threshold: 0.05 });
 
   document.querySelectorAll('.anim-up').forEach(function(el) {
     observer.observe(el);
   });
+});
 
-}); // end requestIdleCallback
+// Smooth scroll — deferred to idle time, not needed for interactivity metrics
+(window.requestIdleCallback || function(cb){ setTimeout(cb, 200); })(function() {
+  document.querySelectorAll('a[href^="#"]').forEach(function(anchor) {
+    anchor.addEventListener('click', function(e) {
+      var href = this.getAttribute('href');
+      if (href === '#') return;
+      var target = document.querySelector(href);
+      if (target) {
+        e.preventDefault();
+        var offsetPosition = target.getBoundingClientRect().top + window.pageYOffset - 100;
+        window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
+      }
+    });
+  });
+});
 </script>
 </body>
 </html>
