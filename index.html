@@ -7,31 +7,24 @@
 <meta name="description" content="Tiger Drywall is Columbia, MO's trusted drywall repair specialist. Hole repair, water damage, texture matching. Free estimates. Licensed & insured.">
 
 <!-- FIX #9: Theme color meta tag -->
-<meta name="theme-color" content="#c96a10">
+<meta name="theme-color" content="#c94900">
 
 <!-- FIX #9: Inline SVG favicon — no file needed -->
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='12' fill='%23c96a10'/><text y='75' font-size='62' text-anchor='middle' x='50' fill='white' font-weight='bold' font-family='Arial'>T</text></svg>">
-<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='12' fill='%23c96a10'/><text y='75' font-size='62' text-anchor='middle' x='50' fill='white' font-weight='bold' font-family='Arial'>T</text></svg>">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='12' fill='%23c94900'/><text y='75' font-size='62' text-anchor='middle' x='50' fill='white' font-weight='bold' font-family='Arial'>T</text></svg>">
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='12' fill='%23c94900'/><text y='75' font-size='62' text-anchor='middle' x='50' fill='white' font-weight='bold' font-family='Arial'>T</text></svg>">
 
-<!-- FIX MOBILE LCP: Preload hero with mobile-first breakpoints.
-     480w added for mobile (360-767px) — saves ~257KB vs loading 1400w on a phone.
-     imagesizes mirrors the srcset in the <img> tag below exactly. -->
+<!-- FIX #2: Preload hero image — browser discovers it immediately, before CSS is parsed -->
 <link rel="preload" as="image"
-  href="https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=480&q=55&fm=webp&fit=crop"
+  href="https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=1400&q=60&fm=webp&fit=crop"
   fetchpriority="high"
   crossorigin="anonymous"
-  imagesrcset="https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=480&q=55&fm=webp&fit=crop 480w, https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=768&q=60&fm=webp&fit=crop 768w, https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=1400&q=60&fm=webp&fit=crop 1400w"
-  imagesizes="(max-width: 767px) 100vw, 100vw">
+  imagesrcset="https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=768&q=60&fm=webp&fit=crop 768w, https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=1400&q=60&fm=webp&fit=crop 1400w"
+  imagesizes="100vw">
 
-<!-- MOBILE FONT FIX: Preload woff2 files directly — bypasses googleapis CSS
-     discovery chain that delayed font loading to 1252ms. Direct preload means
-     fonts start loading at ~200ms alongside the hero image, eliminating the
-     942ms reflow long task that was the #1 TBT killer on mobile. -->
-<link rel="preload" href="https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7W0Q5nw.woff2" as="font" type="font/woff2" crossorigin="anonymous">
-<link rel="preload" href="https://fonts.gstatic.com/s/oswald/v57/TK3IWkUHHAIjg75cFRf3bXL8LICs1_Fv40pKlN4NNSeSASz7FmlWHYjMdZwl.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+<!-- FIX #3: Non-blocking Google Fonts load -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<!-- Load full font CSS async to register all weights -->
+<!-- FIX #3: preload the CSS as style, swap to stylesheet on load — eliminates render-blocking font request -->
 <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@400;500;600;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@400;500;600;700&display=swap"></noscript>
 
@@ -54,13 +47,9 @@
     descent-override: 20%;
     line-gap-override: 0%;
   }
-  /* Prevent CLS: lock hero element heights before font swap completes.
-     Lighthouse flagged h1, checklist UL, hero-actions, and btn-primary as shifters. */
-  .hero-h1 { min-height: 2.2em; }
-  .hero-checklist { min-height: 8em; }
-  .hero-actions { min-height: 4em; }
-  /* Prevent page-level scroll jump when fonts cause reflow */
-  html { overflow-anchor: none; }
+  /* Prevent CLS: hero-h1 min-height locks space before Oswald loads */
+  .hero-h1 { min-height: 1em; }
+  .hero-checklist li { min-height: 1.6em; }
 </style>
 
 <!-- FIX #1: GSAP scripts REMOVED — replaced with native CSS + Intersection Observer below -->
@@ -73,11 +62,26 @@
 html { scroll-behavior: smooth; font-size: 16px; }
 
 :root {
-  /* FIX #6: Darkened orange from #c96a10 to #9e5209 on interactive elements to pass WCAG AA contrast (white on orange needs 4.5:1; #9e5209 = 5.1:1) */
-  --orange: #c96a10;
-  --orange-dark: #7d4008;
-  --orange-cta: #9e5209;      /* AA-compliant orange for white-text buttons */
-  --orange-light: #fff0e4;
+  /* MAIN ORANGE: Fiery red-orange. Passes WCAG AA (4.7:1) on white backgrounds. 
+     Redder hue prevents the "brown" look at this exact lightness level. */
+  --orange: #c94900;
+  
+  /* OPTICAL MATCH: The exact same hex looks brighter/neon on dark backgrounds due to 
+     Simultaneous Contrast. This darker shade visually matches the main orange perfectly. */
+  --orange-on-dark: #b54200; 
+
+  /* HOVER STATE: A natural, deeper shade for interactions. */
+  --orange-hover: #9e3900;
+
+  /* GLOWS: Translucency on navy blue creates a muddy brown if the base color isn't bright enough.
+     Using a pure bright orange here ensures the resulting mix is a clean, vibrant orange. */
+  --orange-glow: rgba(255, 106, 0, 0.15);
+  --orange-glow-strong: rgba(255, 106, 0, 0.35);
+  
+  /* Subtle fade for white backgrounds */
+  --orange-fade: rgba(201, 73, 0, 0.15);
+
+  /* Structure Colors */
   --navy: #1a2744;
   --navy-dark: #0f172a;
   --white: #ffffff;
@@ -86,6 +90,7 @@ html { scroll-behavior: smooth; font-size: 16px; }
   --gray-mid: #475569; 
   --gray-dark: #1e293b; 
   --text: #0f172a;
+  
   --nav-h: 84px;
   --max-w: 1240px;
   --pad: 0 5%;
@@ -116,8 +121,6 @@ nav {
   border-bottom: 1px solid var(--gray-light);
   height: var(--nav-h);
   box-shadow: 0 4px 20px rgba(0,0,0,0.04);
-  /* Promote sticky nav to compositor layer — avoids main-thread repaint on scroll */
-  will-change: transform;
 }
 .nav-inner {
   max-width: var(--max-w);
@@ -189,7 +192,7 @@ nav {
 }
 .nav-phone svg { width: 18px; height: 18px; fill: var(--orange); }
 .nav-cta {
-  background: var(--orange-cta);
+  background: var(--orange);
   color: #fff !important;
   padding: 12px 28px;
   border-radius: 6px;
@@ -199,7 +202,7 @@ nav {
   transition: background 0.2s, transform 0.2s;
 }
 .nav-cta:hover {
-  background: var(--orange-dark);
+  background: var(--orange-hover);
   transform: translateY(-2px);
 }
 
@@ -214,12 +217,6 @@ nav {
   display: flex;
   align-items: center;
   overflow: hidden;
-}
-/* MOBILE: cap hero height — 100vh on mobile = 1355px, forces huge layout calc.
-   Content stacks to ~600px naturally; removing the min-height constraint on
-   small screens cuts style/layout work significantly. */
-@media (max-width: 767px) {
-  .hero { min-height: 0; padding: 40px 0 50px; }
 }
 /* FIX #2 LCP: hero-bg is now an <img> tag — browser can preload + prioritize it.
    The img is absolutely positioned to fill the hero exactly like the old div. */
@@ -249,9 +246,7 @@ nav {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: rgba(201,106,16,0.25);
-  /* FIX #6 CONTRAST: was #ffaa5c (fails AA at small font sizes). 
-     White on this darker orange background passes AA (4.8:1 ratio). */
+  background: var(--orange-glow);
   color: #ffffff;
   padding: 6px 16px;
   border-radius: 100px;
@@ -260,7 +255,7 @@ nav {
   letter-spacing: 0.1em;
   text-transform: uppercase;
   margin-bottom: 24px;
-  border: 1px solid rgba(232,119,34,0.5);
+  border: 1px solid var(--orange-glow-strong);
 }
 .hero-h1 {
   font-family: 'Oswald', sans-serif;
@@ -272,7 +267,7 @@ nav {
   letter-spacing: 0.01em;
   margin-bottom: 24px;
 }
-.hero-h1 .highlight { color: var(--orange); }
+.hero-h1 .highlight { color: var(--orange-on-dark); }
 
 .hero-checklist {
   margin-bottom: 40px;
@@ -293,7 +288,7 @@ nav {
 .hero-checklist-icon {
   width: 24px;
   height: 24px;
-  background: var(--orange);
+  background: var(--orange-on-dark);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -310,7 +305,7 @@ nav {
   flex-wrap: wrap;
 }
 .btn-primary {
-  background: var(--orange-cta);
+  background: var(--orange-on-dark);
   color: #fff;
   font-family: 'Oswald', sans-serif;
   font-size: 1.1rem;
@@ -322,7 +317,7 @@ nav {
   transition: background 0.2s, transform 0.2s;
   text-align: center;
 }
-.btn-primary:hover { background: var(--orange-dark); transform: translateY(-2px); }
+.btn-primary:hover { background: var(--orange-hover); transform: translateY(-2px); }
 .btn-secondary {
   display: flex;
   align-items: center;
@@ -391,7 +386,7 @@ select.form-input {
   cursor: pointer;
 }
 .form-submit {
-  background: var(--orange-cta);
+  background: var(--orange);
   color: #fff;
   border: none;
   width: 100%;
@@ -405,7 +400,7 @@ select.form-input {
   margin-top: 8px;
   transition: background 0.2s, transform 0.1s;
 }
-.form-submit:hover { background: var(--orange-dark); transform: scale(1.02); }
+.form-submit:hover { background: var(--orange-hover); transform: scale(1.02); }
 .form-submit:active { transform: scale(0.98); }
 .form-guarantee {
   display: flex;
@@ -492,6 +487,9 @@ section.std { padding: 96px 0; }
   margin-bottom: 12px;
   display: block;
 }
+/* Override optical match for dark background sections */
+#process .section-tag { color: var(--orange-on-dark); }
+
 .section-h2 {
   font-family: 'Oswald', sans-serif;
   font-size: clamp(2.2rem, 4vw, 3rem);
@@ -758,7 +756,7 @@ section.std { padding: 96px 0; }
   left: 12%;
   width: 76%;
   height: 2px;
-  background: linear-gradient(90deg, transparent, rgba(232,119,34,0.4), rgba(232,119,34,0.4), transparent);
+  background: linear-gradient(90deg, transparent, var(--orange-glow-strong), var(--orange-glow-strong), transparent);
   z-index: 0;
 }
 .process-step {
@@ -781,8 +779,8 @@ section.std { padding: 96px 0; }
   transition: border-color 0.25s, background 0.25s, transform 0.3s;
 }
 .process-step:hover .step-circle {
-  border-color: var(--orange);
-  background: var(--orange);
+  border-color: var(--orange-on-dark);
+  background: var(--orange-on-dark);
   transform: translateY(-4px);
 }
 .step-circle svg {
@@ -846,7 +844,7 @@ section.std { padding: 96px 0; }
 }
 .tcard:hover {
   box-shadow: 0 12px 30px rgba(0,0,0,0.06);
-  border-color: rgba(232,119,34,0.3);
+  border-color: var(--orange-fade);
 }
 .tcard-quote {
   font-family: 'Oswald', sans-serif;
@@ -943,7 +941,7 @@ footer {
 }
 .footer-col ul { display: flex; flex-direction: column; gap: 12px; }
 .footer-col a { color: rgba(255,255,255,0.6); transition: color 0.2s; font-size: 0.95rem;}
-.footer-col a:hover { color: var(--orange); }
+.footer-col a:hover { color: var(--orange-on-dark); }
 .footer-bottom {
   max-width: var(--max-w);
   margin: 0 auto;
@@ -1126,10 +1124,9 @@ footer {
      as the hero image immediately. This is the single biggest LCP fix. -->
   <img class="hero-bg"
     src="https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=1400&q=60&fm=webp&fit=crop"
-    srcset="https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=480&q=55&fm=webp&fit=crop 480w,
-            https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=768&q=60&fm=webp&fit=crop 768w,
+    srcset="https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=768&q=60&fm=webp&fit=crop 768w,
             https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=1400&q=60&fm=webp&fit=crop 1400w"
-    sizes="(max-width: 767px) 100vw, 100vw"
+    sizes="100vw"
     alt=""
     width="1400"
     height="933"
