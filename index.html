@@ -7,11 +7,11 @@
 <meta name="description" content="Tiger Drywall is Columbia, MO's trusted drywall repair specialist. Hole repair, water damage, texture matching. Free estimates. Licensed & insured.">
 
 <!-- FIX #9: Theme color meta tag -->
-<meta name="theme-color" content="#c94900">
+<meta name="theme-color" content="#d15c00">
 
 <!-- FIX #9: Inline SVG favicon — no file needed -->
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='12' fill='%23c94900'/><text y='75' font-size='62' text-anchor='middle' x='50' fill='white' font-weight='bold' font-family='Arial'>T</text></svg>">
-<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='12' fill='%23c94900'/><text y='75' font-size='62' text-anchor='middle' x='50' fill='white' font-weight='bold' font-family='Arial'>T</text></svg>">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='12' fill='%23d15c00'/><text y='75' font-size='62' text-anchor='middle' x='50' fill='white' font-weight='bold' font-family='Arial'>T</text></svg>">
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='12' fill='%23d15c00'/><text y='75' font-size='62' text-anchor='middle' x='50' fill='white' font-weight='bold' font-family='Arial'>T</text></svg>">
 
 <!-- FIX #2: Preload hero image — browser discovers it immediately, before CSS is parsed -->
 <link rel="preload" as="image"
@@ -62,23 +62,21 @@
 html { scroll-behavior: smooth; font-size: 16px; }
 
 :root {
-  /* MAIN ORANGE: Fiery red-orange. Passes WCAG AA (4.7:1) on white backgrounds. 
-     Redder hue prevents the "brown" look at this exact lightness level. */
-  --orange: #c94900;
+  /* MAIN ORANGE: A true, vibrant orange without leaning red or brown. */
+  --orange: #d15c00;
   
-  /* OPTICAL MATCH: Reverted to the main orange to ensure no brown/dark tints appear on the hero text and checkmarks. */
-  --orange-on-dark: #c94900; 
+  /* OPTICAL MATCH: Uses the exact same vibrant orange so dark backgrounds don't muddy the text. */
+  --orange-on-dark: #d15c00; 
 
   /* HOVER STATE: A natural, deeper shade for interactions. */
-  --orange-hover: #9e3900;
+  --orange-hover: #b04e00;
 
-  /* GLOWS: Translucency on navy blue creates a muddy brown if the base color isn't bright enough.
-     Using a pure bright orange here ensures the resulting mix is a clean, vibrant orange. */
-  --orange-glow: rgba(255, 106, 0, 0.15);
-  --orange-glow-strong: rgba(255, 106, 0, 0.35);
+  /* GLOWS: Prevents transparent colors from mixing into brown on a navy background */
+  --orange-glow: rgba(255, 120, 0, 0.15);
+  --orange-glow-strong: rgba(255, 120, 0, 0.35);
   
   /* Subtle fade for white backgrounds */
-  --orange-fade: rgba(201, 73, 0, 0.15);
+  --orange-fade: rgba(209, 92, 0, 0.15);
 
   /* Structure Colors */
   --navy: #1a2744;
@@ -1019,13 +1017,32 @@ footer {
   .nav-actions { gap: 12px; }
   section.std { padding: 56px 0; }
   .trust-grid-sec { padding: 40px 0; }
-  .hero { padding: 40px 0 60px; }
+  
+  /* FIX: Anchored hero content to top to ensure text and buttons are above the fold */
+  .hero { 
+    padding: 40px 0 60px; 
+    align-items: flex-start; 
+  }
+  
+  /* FIX: Vastly increased mobile heading size for impact */
+  .hero-h1 { 
+    font-size: clamp(2.6rem, 8vw, 3.2rem); 
+    margin-bottom: 16px; 
+  }
+  .hero-tag { margin-bottom: 16px; }
+  
+  /* Trimmed margins slightly so the buttons sit higher on mobile displays */
+  .hero-checklist { margin: 0 auto 28px auto; gap: 12px; }
+  .hero-checklist li { font-size: 1rem; }
+  
+  .hero-actions { flex-direction: column; width: 100%; gap: 12px; } 
+  .hero-actions > a, .hero-actions > button { width: 100%; justify-content: center; } 
+
+  .hero-form-wrapper { padding: 30px 20px; } 
+
   .cta-band { padding: 56px 0; }
   footer { padding: 56px 0 20px; }
-  .hero-h1 { font-size: 2.2rem; }
-  .hero-form-wrapper { padding: 30px 20px; } 
-  .hero-actions { flex-direction: column; width: 100%; } 
-  .hero-actions > a, .hero-actions > button { width: 100%; justify-content: center; } 
+
   .trust-grid { grid-template-columns: repeat(2, 1fr); gap: 32px 16px; }
   .trust-card { padding: 0; }
   .trust-icon-wrap { width: 48px; height: 48px; margin-bottom: 12px; }
