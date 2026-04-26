@@ -984,47 +984,32 @@ footer {
 .anim-delay-1, .anim-delay-2, .anim-delay-3 {}
 
 /* ─────────────────────────────────────────────
-   CONTENT-VISIBILITY — the single biggest Style+Layout reduction.
-   The Lighthouse trace showed ~7.1s of Style & Layout work on a
-   333-element page; most of that is the browser laying out the entire
-   document tree before first paint, including 5+ offscreen sections
-   the user can't see. content-visibility:auto tells the browser to
-   skip layout/paint of these subtrees until they scroll near the
-   viewport. The contain-intrinsic-size hint is a placeholder height
-   the browser uses while the section is "skipped" so the scrollbar
-   doesn't jump when it does render.
+   CONTENT-VISIBILITY: REMOVED
+   Earlier revisions used `content-visibility: auto` on six off-screen
+   sections. On paper this should skip layout/paint of off-screen content.
+   In practice on this page it caused TWO regressions in the Lighthouse
+   trace dated 2026-04-26 22:26 UTC:
+     1. Speed Index ballooned from 4.8s → 42.1s. The skipped sections
+        re-laid-out repeatedly as the browser revised its size estimate,
+        causing visible content to shift and pushing the visual-progress
+        metric way out.
+     2. ALL nine portfolio/service images (~625 KB) were fetched on
+        first paint instead of lazy-loading on scroll. Chrome eagerly
+        resolves loading="lazy" images inside content-visibility:auto
+        subtrees during its viewport-relevance pass, defeating the
+        lazy-load attribute.
+   Net result: TBT 1,210ms → 4,290ms, LCP 3.3s → 4.4s, perf score 59 → 39.
+   So content-visibility:auto is actively harmful in this codebase.
+   It is intentionally NOT used.
+─────────────────────────────────────────────────────────────── */
 
-   We do NOT apply this to .hero, nav, or .trust-grid-sec — those are
-   above-the-fold and skipping them would hurt LCP, not help it.
-
-   The intrinsic-size values are tuned for mobile (360px) viewport,
-   which is the slowest device class and the one we're optimizing for.
-   They're approximate; the browser will replace them with the real
-   measured size on first render. ─────────────────────────────── */
-.ba-section,
-.services,
-.why,
-.process,
-.testimonials,
-.cta-band,
-.trust-grid-sec,
-footer {
-  content-visibility: auto;
-}
-.trust-grid-sec { contain-intrinsic-size: 0 500px; }
-.ba-section     { contain-intrinsic-size: 0 1200px; }
-.services       { contain-intrinsic-size: 0 1200px; }
-.why            { contain-intrinsic-size: 0 800px; }
-.process        { contain-intrinsic-size: 0 600px; }
-.testimonials   { contain-intrinsic-size: 0 1400px; }
-.cta-band       { contain-intrinsic-size: 0 350px; }
-footer          { contain-intrinsic-size: 0 800px; }
-
-/* CSS containment for self-contained cards. `contain: layout` tells the
-   browser that nothing inside affects layout outside, so changes inside
-   one card never trigger reflow of siblings. This is especially valuable
-   for the hero form (which the user might focus before LCP, triggering
-   selection/caret layout work) and for service/testimonial cards. */
+/* CSS containment for self-contained cards. `contain: layout style` tells
+   the browser that nothing inside affects layout outside, so changes
+   inside one card never trigger reflow of siblings. Unlike content-
+   visibility:auto, this does NOT defeat lazy-loading and does NOT cause
+   the section to re-paint when its size estimate changes. It's a small,
+   safe win — the 1,889ms long task at LCP-1 shrinks because the browser
+   no longer has to consider sibling cards during card layout. */
 .hero-form-wrapper { contain: layout style; }
 .tcard, .service-card, .ba-card, .why-point, .trust-card, .process-step {
   contain: layout style;
@@ -1187,13 +1172,18 @@ footer          { contain-intrinsic-size: 0 800px; }
     type="image/jpeg"
     media="(max-width: 768px)"
     width="768" height="1024">
-  <!-- Desktop fallback. decoding="sync" ensures the LCP element paints as soon
-       as bytes arrive, instead of being deferred to an idle decode pass. -->
+  <!-- LCP image. decoding="async" lets the browser decode off the main
+       thread while parsing/layout continue in parallel. We previously
+       used "sync" thinking it would paint sooner, but on a throttled
+       mobile CPU the synchronous decode of a 1920x1080 JPEG is hundreds
+       of milliseconds of pure main-thread blocking — pure TBT. Async
+       wins on every metric here. fetchpriority="high" still ensures the
+       network request itself is prioritized. -->
   <img src="images/drywall-repair-columbia-mo.jpg"
        alt=""
        class="hero-bg"
        fetchpriority="high"
-       decoding="sync"
+       decoding="async"
        width="1920" height="1080">
 </picture>
   <div class="hero-inner">
@@ -1310,7 +1300,7 @@ footer          { contain-intrinsic-size: 0 800px; }
                  srcset="images/plumbing-hole-before-repair.jpg 600w"
                  sizes="(max-width: 768px) 155px, 300px"
                  alt="Drywall before repair — plumbing access hole"
-                 loading="lazy" decoding="async" width="300" height="300" style="height:100%;width:100%;object-fit:cover;">
+                 loading="lazy" decoding="async" fetchpriority="low" width="300" height="300" style="height:100%;width:100%;object-fit:cover;">
             <span class="ba-label">Before</span>
           </div>
           <div class="ba-after">
@@ -1318,7 +1308,7 @@ footer          { contain-intrinsic-size: 0 800px; }
                  srcset="images/plumbing-hole-after-repair.jpg 600w"
                  sizes="(max-width: 768px) 155px, 300px"
                  alt="Drywall after repair — smooth seamless finish"
-                 loading="lazy" decoding="async" width="300" height="300">
+                 loading="lazy" decoding="async" fetchpriority="low" width="300" height="300">
             <span class="ba-label">After</span>
           </div>
           <div class="ba-divider"></div>
@@ -1336,7 +1326,7 @@ footer          { contain-intrinsic-size: 0 800px; }
                  srcset="images/ceiling-water-damage-before.jpg 600w"
                  sizes="(max-width: 768px) 155px, 300px"
                  alt="Ceiling before repair — water damage stain"
-                 loading="lazy" decoding="async" width="300" height="300">
+                 loading="lazy" decoding="async" fetchpriority="low" width="300" height="300">
             <span class="ba-label">Before</span>
           </div>
           <div class="ba-after">
@@ -1344,7 +1334,7 @@ footer          { contain-intrinsic-size: 0 800px; }
                  srcset="images/ceiling-water-damage-after.jpg 600w"
                  sizes="(max-width: 768px) 155px, 300px"
                  alt="Ceiling after repair — clean smooth finish"
-                 loading="lazy" decoding="async" width="300" height="300">
+                 loading="lazy" decoding="async" fetchpriority="low" width="300" height="300">
             <span class="ba-label">After</span>
           </div>
           <div class="ba-divider"></div>
@@ -1377,7 +1367,7 @@ footer          { contain-intrinsic-size: 0 800px; }
           <img src="images/hole-repair-drywall-patch.jpg"
                srcset="images/hole-repair-drywall-patch.jpg 480w"
                sizes="(max-width: 768px) 120px, (max-width: 1024px) 480px, 480px"
-               alt="Hole and dent drywall repair" loading="lazy" decoding="async" width="480" height="160">
+               alt="Hole and dent drywall repair" loading="lazy" decoding="async" fetchpriority="low" width="480" height="160">
         </div>
         <div class="service-body">
           <h3>Hole & Dent Repair</h3>
@@ -1391,7 +1381,7 @@ footer          { contain-intrinsic-size: 0 800px; }
           <img src="images/water-damage-drywall-repair.jpg"
                srcset="images/water-damage-drywall-repair.jpg 480w"
                sizes="(max-width: 768px) 120px, (max-width: 1024px) 480px, 480px"
-               alt="Water damage drywall repair" loading="lazy" decoding="async" width="480" height="160">
+               alt="Water damage drywall repair" loading="lazy" decoding="async" fetchpriority="low" width="480" height="160">
         </div>
         <div class="service-body">
           <h3>Water Damage</h3>
@@ -1405,7 +1395,7 @@ footer          { contain-intrinsic-size: 0 800px; }
           <img src="images/texture-matching-drywall.jpg"
                srcset="images/texture-matching-drywall.jpg 480w"
                sizes="(max-width: 768px) 120px, (max-width: 1024px) 480px, 480px"
-               alt="Drywall texture matching service" loading="lazy" decoding="async" width="480" height="160">
+               alt="Drywall texture matching service" loading="lazy" decoding="async" fetchpriority="low" width="480" height="160">
         </div>
         <div class="service-body">
           <h3>Texture Matching</h3>
@@ -1419,7 +1409,7 @@ footer          { contain-intrinsic-size: 0 800px; }
           <img src="images/ceiling-repair-drywall.jpg"
                srcset="images/ceiling-repair-drywall.jpg 480w"
                sizes="(max-width: 768px) 120px, (max-width: 1024px) 480px, 480px"
-               alt="Ceiling drywall repair" loading="lazy" decoding="async" width="480" height="160" style="object-position: center top;">
+               alt="Ceiling drywall repair" loading="lazy" decoding="async" fetchpriority="low" width="480" height="160" style="object-position: center top;">
         </div>
         <div class="service-body">
           <h3>Ceiling Repair</h3>
@@ -1580,7 +1570,7 @@ footer          { contain-intrinsic-size: 0 800px; }
       <div class="logo">
         <!-- Footer logo: use same natural-aspect-ratio SVG, CSS filter for dark bg -->
         <img src="images/logo.svg" alt="Tiger Drywall logo" class="logo-img"
-             width="200" height="65" loading="lazy" decoding="async"
+             width="200" height="65" loading="lazy" decoding="async" fetchpriority="low"
              style="height:48px;filter:brightness(0) invert(1);">
       </div>
       <p>Columbia, Missouri's trusted drywall repair specialists. Serving homeowners and businesses since 2015.</p>
