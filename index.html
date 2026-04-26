@@ -13,8 +13,7 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='12' fill='%23d15c00'/><text y='75' font-size='62' text-anchor='middle' x='50' fill='white' font-weight='bold' font-family='Arial'>T</text></svg>">
 <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='12' fill='%23d15c00'/><text y='75' font-size='62' text-anchor='middle' x='50' fill='white' font-weight='bold' font-family='Arial'>T</text></svg>">
 
-<!-- FIX #2 IMPROVED: Preload hero image with mobile-optimized srcset.
-     Mobile (≤768px) gets w=480 (~30KB) instead of w=1400 (~320KB) — saves ~290KB on mobile LCP. -->
+<!-- Preload hero image — no intrinsic size hint needed since img fills via CSS inset:0 -->
 <link rel="preload" as="image"
   href="https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=480&q=55&fm=webp&fit=crop"
   fetchpriority="high"
@@ -26,7 +25,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <!-- Load fonts completely async: print media loads without blocking render, onload switches to all -->
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@400;500;600;700&display=swap&font-display=swap" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@400;500;600;700&display=swap"></noscript>
 
 <!-- FIX #3: Override font metrics so system fallback (Arial/Arial Narrow) matches 
@@ -125,8 +124,8 @@ nav {
   border-bottom: 1px solid var(--gray-light);
   height: var(--nav-h);
   box-shadow: 0 4px 20px rgba(0,0,0,0.04);
-  /* Promote sticky nav to its own compositor layer — prevents full-page repaints on scroll */
-  will-change: transform;
+  /* will-change:transform removed — sticky nav doesn't need a separate compositor layer;
+     adding it costs GPU memory and causes unnecessary compositing overhead on mobile. */
 }
 .nav-inner {
   max-width: var(--max-w);
@@ -198,7 +197,7 @@ nav {
 }
 .nav-phone svg { width: 18px; height: 18px; fill: var(--orange); }
 .nav-cta {
-  background: var(--orange);
+  background: var(--navy-dark);
   color: #fff !important;
   padding: 12px 28px;
   border-radius: 6px;
@@ -208,7 +207,7 @@ nav {
   transition: background 0.2s, transform 0.2s;
 }
 .nav-cta:hover {
-  background: var(--orange-hover);
+  background: var(--navy);
   transform: translateY(-2px);
 }
 
@@ -219,26 +218,27 @@ nav {
   position: relative;
   background: var(--navy-dark);
   padding: 60px 0 100px;
-  /* Avoid calc(100vh) — forces synchronous layout query during initial style recalc on mobile.
-     Fixed min-height is cheaper; hero content naturally sizes the section on small screens. */
+  /* min-height only needed on desktop — mobile height is driven by padding + content.
+     Using min-height:0 on mobile avoids the expensive vertical-centering layout pass
+     that recalculates when the absolutely-positioned hero-bg is present. */
   min-height: 600px;
   display: flex;
   align-items: center;
   overflow: hidden;
 }
-/* FIX #2 LCP: hero-bg is now an <img> tag — browser can preload + prioritize it.
-   The img is absolutely positioned to fill the hero exactly like the old div.
-   contain:strict isolates it from triggering layout recalcs in siblings. */
+/* hero-bg fills the hero section absolutely.
+   contain:strict REMOVED — it forced the browser to honor intrinsic 1400x933 dims
+   for layout even when absolutely positioned, causing 4000+ms Style/Layout thrash on mobile.
+   object-fit:cover handles the stretch/squish; explicit inset:0 locks it to the hero. */
 .hero-bg {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center;
+  object-position: center 30%;
   opacity: 0.22;
   z-index: 0;
-  contain: strict;
 }
 .hero-inner {
   position: relative;
@@ -315,7 +315,7 @@ nav {
   flex-wrap: wrap;
 }
 .btn-primary {
-  background: var(--orange-on-dark);
+  background: #b84900;
   color: #fff;
   font-family: 'Oswald', sans-serif;
   font-size: 1.1rem;
@@ -493,12 +493,12 @@ section.std { padding: 96px 0; }
   font-weight: 700;
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  color: var(--orange);
+  color: #a04400;
   margin-bottom: 12px;
   display: block;
 }
-/* Override optical match for dark background sections */
-#process .section-tag { color: var(--orange-on-dark); }
+/* Override for dark background sections */
+#process .section-tag { color: #ff8533; }
 
 .section-h2 {
   font-family: 'Oswald', sans-serif;
@@ -963,6 +963,20 @@ footer {
   font-size: 0.9rem;
 }
 
+/* content-visibility: auto defers style+layout work for off-screen sections.
+   contain-intrinsic-size provides a size estimate so scroll height is stable.
+   This is the single biggest remaining TBT reducer after the contain:strict fix. */
+.ba-section,
+.services,
+.why,
+.process,
+.testimonials,
+.cta-band,
+footer {
+  content-visibility: auto;
+  contain-intrinsic-size: 0 600px;
+}
+
 /* contain: layout style REMOVED from all sections.
    Even contain:layout style causes significant Style recalculation thrash
    on mobile Chromium when sections contain images with dynamic sizing.
@@ -982,11 +996,10 @@ footer {
 }
 .anim-up {
   opacity: 0;
-  transform: translateY(28px);
-  transition: opacity 0.7s ease, transform 0.7s ease;
-  /* NO will-change here — setting it on all off-screen elements at once
-     forces the browser to create GPU compositing layers for every hidden element,
-     causing thousands of ms of Style & Layout thrash before LCP even paints. */
+  transform: translateY(24px);
+  /* Use a single composite-friendly transition — browsers can run transform+opacity
+     on the GPU compositor thread without touching the main thread */
+  transition: opacity 0.55s ease, transform 0.55s ease;
 }
 .anim-up.is-visible {
   opacity: 1;
@@ -1026,7 +1039,8 @@ footer {
   /* FIX: Anchored hero content to top to ensure text and buttons are above the fold */
   .hero { 
     padding: 40px 0 60px; 
-    align-items: flex-start; 
+    align-items: flex-start;
+    min-height: 0; /* removes expensive flex vertical-centering recalc on mobile */
   }
   
   /* FIX: Vastly increased mobile heading size for impact */
@@ -1149,8 +1163,6 @@ footer {
             https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=1400&q=60&fm=webp&fit=crop 1400w"
     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 100vw, 1400px"
     alt=""
-    width="1400"
-    height="933"
     fetchpriority="high"
     loading="eager"
     decoding="sync"
@@ -1264,17 +1276,25 @@ footer {
     <div class="ba-grid">
       <div class="ba-card anim-up">
         <div class="ba-images">
-          <!-- FIX D: Real <img loading="lazy"> instead of CSS background-image — browser can lazy-load these -->
+          <!-- Responsive srcset: mobile ba slots are ~155px wide, desktop ~300px -->
           <div class="ba-before">
-            <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80&fm=webp"
+            <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=300&q=80&fm=webp"
+                 srcset="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=200&q=75&fm=webp 200w,
+                         https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=300&q=80&fm=webp 300w,
+                         https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80&fm=webp 600w"
+                 sizes="(max-width: 768px) 155px, 300px"
                  alt="Drywall before repair — plumbing access hole"
-                 loading="lazy" decoding="async" width="600" height="300" style="height:100%;width:100%;object-fit:cover;">
+                 loading="lazy" decoding="async" width="300" height="300" style="height:100%;width:100%;object-fit:cover;">
             <span class="ba-label">Before</span>
           </div>
           <div class="ba-after">
-            <img src="https://images.unsplash.com/photo-1615874959474-d609969a20ed?w=600&q=80&fm=webp"
+            <img src="https://images.unsplash.com/photo-1615874959474-d609969a20ed?w=300&q=80&fm=webp"
+                 srcset="https://images.unsplash.com/photo-1615874959474-d609969a20ed?w=200&q=75&fm=webp 200w,
+                         https://images.unsplash.com/photo-1615874959474-d609969a20ed?w=300&q=80&fm=webp 300w,
+                         https://images.unsplash.com/photo-1615874959474-d609969a20ed?w=600&q=80&fm=webp 600w"
+                 sizes="(max-width: 768px) 155px, 300px"
                  alt="Drywall after repair — smooth seamless finish"
-                 loading="lazy" decoding="async" width="600" height="300">
+                 loading="lazy" decoding="async" width="300" height="300">
             <span class="ba-label">After</span>
           </div>
           <div class="ba-divider"></div>
@@ -1288,15 +1308,23 @@ footer {
       <div class="ba-card anim-up anim-delay-1">
         <div class="ba-images">
           <div class="ba-before">
-            <img src="https://images.unsplash.com/photo-1565538810643-b5bdb714032a?w=600&q=80&fm=webp"
+            <img src="https://images.unsplash.com/photo-1565538810643-b5bdb714032a?w=300&q=80&fm=webp"
+                 srcset="https://images.unsplash.com/photo-1565538810643-b5bdb714032a?w=200&q=75&fm=webp 200w,
+                         https://images.unsplash.com/photo-1565538810643-b5bdb714032a?w=300&q=80&fm=webp 300w,
+                         https://images.unsplash.com/photo-1565538810643-b5bdb714032a?w=600&q=80&fm=webp 600w"
+                 sizes="(max-width: 768px) 155px, 300px"
                  alt="Ceiling before repair — water damage stain"
-                 loading="lazy" decoding="async" width="600" height="300">
+                 loading="lazy" decoding="async" width="300" height="300">
             <span class="ba-label">Before</span>
           </div>
           <div class="ba-after">
-            <img src="https://images.unsplash.com/photo-1572120360610-d971b9d7767c?w=600&q=80&fm=webp"
+            <img src="https://images.unsplash.com/photo-1572120360610-d971b9d7767c?w=300&q=80&fm=webp"
+                 srcset="https://images.unsplash.com/photo-1572120360610-d971b9d7767c?w=200&q=75&fm=webp 200w,
+                         https://images.unsplash.com/photo-1572120360610-d971b9d7767c?w=300&q=80&fm=webp 300w,
+                         https://images.unsplash.com/photo-1572120360610-d971b9d7767c?w=600&q=80&fm=webp 600w"
+                 sizes="(max-width: 768px) 155px, 300px"
                  alt="Ceiling after repair — clean smooth finish"
-                 loading="lazy" decoding="async" width="600" height="300">
+                 loading="lazy" decoding="async" width="300" height="300">
             <span class="ba-label">After</span>
           </div>
           <div class="ba-divider"></div>
