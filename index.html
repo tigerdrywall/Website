@@ -15,17 +15,15 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='12' fill='%23d15c00'/><text y='75' font-size='62' text-anchor='middle' x='50' fill='white' font-weight='bold' font-family='Arial'>T</text></svg>">
 <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='12' fill='%23d15c00'/><text y='75' font-size='62' text-anchor='middle' x='50' fill='white' font-weight='bold' font-family='Arial'>T</text></svg>">
 
-<!-- Logo preloaded — nav renders instantly without waiting for SVG download -->
-<link rel="preload" as="image" href="images/logo.svg" fetchpriority="high">
-<!-- Preload mobile hero image — this is the LCP element on mobile viewports -->
+<!-- LCP-only preloads. Logo preload was REMOVED — at 162KB it was a heavy
+     "high-priority" download competing with the real LCP image (the hero photo)
+     for bandwidth on the mobile network and CPU on the decode thread. The logo
+     gets fetched normally as part of the nav <img>; it's small enough at the
+     network level that it does not need to race the hero. -->
 <link rel="preload" as="image" href="images/drywall-repair-columbia-mo-mobile.jpg" fetchpriority="high" media="(max-width: 768px)">
-<!-- Preload desktop hero image for larger screens -->
 <link rel="preload" as="image" href="images/drywall-repair-columbia-mo.jpg" fetchpriority="high" media="(min-width: 769px)">
 
 <!-- No external fonts — system stack used throughout for zero network overhead -->
-
-<!-- Critical: tell browser to start DNS+TCP for github CDN early -->
-<link rel="dns-prefetch" href="https://tigerdrywall.github.io">
 
 <!-- Prevent invisible text during font load (system fonts load instantly, 
      but this hint is a no-op cost if fonts are already available) -->
@@ -40,9 +38,23 @@
 html { font-size: 16px; }
 
 :root {
-  /* MAIN ORANGE: A true, vibrant orange without leaning red or brown. */
+  /* MAIN ORANGE: A true, vibrant orange without leaning red or brown.
+     Used for hero accents, dividers, and any non-text decorative element. */
   --orange: #d15c00;
-  
+
+  /* BUTTON ORANGE: Slightly darker so that white text on top passes WCAG AA
+     (white on #b84f00 = ~5.5:1). The eye reads this as the same brand orange,
+     and tap-target sized buttons are not visually distinguishable from --orange.
+     Use this anywhere white text sits on an orange background. */
+  --orange-btn: #b84f00;
+
+  /* TEXT-ON-WHITE ORANGE: Slightly darker shade used ONLY for orange text
+     placed on white/off-white backgrounds, where the lighter --orange
+     fails WCAG AA contrast (4.05:1 vs the required 4.5:1). This shade is
+     #a04400 = 6.26:1 on white = passes AA. Visually nearly identical to the
+     main brand orange. */
+  --orange-text: #a04400;
+
   /* OPTICAL MATCH: Uses the exact same vibrant orange so dark backgrounds don't muddy the text. */
   --orange-on-dark: #d15c00; 
 
@@ -180,7 +192,7 @@ nav {
    which is fine, but pairing it with 'background' forces a repaint on the same frame.
    Keep transform (compositor) and background (paint) separate for mobile perf. */
 .nav-cta {
-  background: var(--orange);
+  background: var(--orange-btn);
   color: #fff !important;
   padding: 12px 28px;
   border-radius: 6px;
@@ -307,7 +319,7 @@ nav {
   flex-wrap: wrap;
 }
 .btn-primary {
-  background: #b84900;
+  background: var(--orange-btn);
   color: #fff;
   font-family: 'Impact', 'Arial Narrow', system-ui, sans-serif;
   font-size: 1.1rem;
@@ -388,7 +400,7 @@ select.form-input {
   cursor: pointer;
 }
 .form-submit {
-  background: var(--orange);
+  background: var(--orange-btn);
   color: #fff;
   border: none;
   width: 100%;
@@ -612,20 +624,20 @@ section.std { padding: 96px 0; }
 }
 .btn-outline {
   background: transparent;
-  color: var(--orange);
+  color: var(--orange-text);
   font-family: 'Impact', 'Arial Narrow', system-ui, sans-serif;
   font-size: 0.95rem;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   padding: 14px 28px;
-  border: 2px solid var(--orange);
+  border: 2px solid var(--orange-text);
   border-radius: 6px;
   transition: background 0.2s, color 0.2s;
   white-space: nowrap;
   margin-top: 8px;
 }
-.btn-outline:hover { background: var(--orange); color: #fff; }
+.btn-outline:hover { background: var(--orange-btn); color: #fff; border-color: var(--orange-btn); }
 
 .services-grid {
   display: grid;
@@ -690,7 +702,7 @@ section.std { padding: 96px 0; }
 }
 .service-link {
   font-weight: 700;
-  color: var(--orange);
+  color: var(--orange-text);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   display: inline-flex;
@@ -966,6 +978,41 @@ footer {
 .anim-delay-1, .anim-delay-2, .anim-delay-3 {}
 
 /* ─────────────────────────────────────────────
+   CONTENT-VISIBILITY — the single biggest Style+Layout reduction.
+   The Lighthouse trace showed ~7.1s of Style & Layout work on a
+   333-element page; most of that is the browser laying out the entire
+   document tree before first paint, including 5+ offscreen sections
+   the user can't see. content-visibility:auto tells the browser to
+   skip layout/paint of these subtrees until they scroll near the
+   viewport. The contain-intrinsic-size hint is a placeholder height
+   the browser uses while the section is "skipped" so the scrollbar
+   doesn't jump when it does render.
+
+   We do NOT apply this to .hero, nav, or .trust-grid-sec — those are
+   above-the-fold and skipping them would hurt LCP, not help it.
+
+   The intrinsic-size values are tuned for mobile (360px) viewport,
+   which is the slowest device class and the one we're optimizing for.
+   They're approximate; the browser will replace them with the real
+   measured size on first render. ─────────────────────────────── */
+.ba-section,
+.services,
+.why,
+.process,
+.testimonials,
+.cta-band,
+footer {
+  content-visibility: auto;
+}
+.ba-section     { contain-intrinsic-size: 0 1200px; }
+.services       { contain-intrinsic-size: 0 1200px; }
+.why            { contain-intrinsic-size: 0 800px; }
+.process        { contain-intrinsic-size: 0 600px; }
+.testimonials   { contain-intrinsic-size: 0 1400px; }
+.cta-band       { contain-intrinsic-size: 0 350px; }
+footer          { contain-intrinsic-size: 0 800px; }
+
+/* ─────────────────────────────────────────────
    RESPONSIVE (MOBILE OPTIMIZED)
 ───────────────────────────────────────────── */
 @media (max-width: 1024px) {
@@ -1119,14 +1166,16 @@ footer {
   <!-- Mobile: served to screens 768px wide or narrower -->
   <source
     srcset="images/drywall-repair-columbia-mo-mobile.jpg"
+    type="image/jpeg"
     media="(max-width: 768px)"
     width="768" height="1024">
-  <!-- Desktop: full resolution for larger screens -->
+  <!-- Desktop fallback. decoding="sync" ensures the LCP element paints as soon
+       as bytes arrive, instead of being deferred to an idle decode pass. -->
   <img src="images/drywall-repair-columbia-mo.jpg"
        alt=""
        class="hero-bg"
        fetchpriority="high"
-       decoding="async"
+       decoding="sync"
        width="1920" height="1080">
 </picture>
   <div class="hero-inner">
@@ -1547,34 +1596,40 @@ footer {
 
 <!-- Scroll animations removed. Only smooth-scroll behavior remains. -->
 <script>
-// Register Service Worker AFTER page load — prevents SW registration from
-// competing with LCP image download on low-end mobile devices.
-// Using 'load' event ensures all critical resources are fetched first.
+// Service Worker registration is deferred until the browser is idle, AFTER
+// the load event fires. requestIdleCallback (with a setTimeout fallback)
+// guarantees we don't compete with paint, decode, or input handling on
+// low-end mobile devices during the critical first-visit window.
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function() {
-    // Small delay after load to let the browser settle paint tasks first
-    setTimeout(function() {
+    var registerSW = function() {
       var swPath = (location.pathname.replace(/\/[^/]*$/, '') || '') + '/sw.js';
       navigator.serviceWorker.register(swPath).catch(function(){
         // Silently fail if sw.js is not deployed yet — no console error
       });
-    }, 3000);
+    };
+    if ('requestIdleCallback' in window) {
+      requestIdleCallback(registerSW, { timeout: 4000 });
+    } else {
+      setTimeout(registerSW, 2000);
+    }
   });
 }
 
-// Smooth scroll for anchor links — deferred until after load
+// Smooth-scroll handler for anchor links — attached once after load.
+// Uses event delegation on document so we don't query the DOM at all
+// during page setup (the old version called querySelectorAll on every load).
 window.addEventListener('load', function() {
-  document.querySelectorAll('a[href^="#"]').forEach(function(anchor) {
-    anchor.addEventListener('click', function(e) {
-      var href = this.getAttribute('href');
-      if (href === '#') return;
-      var target = document.querySelector(href);
-      if (target) {
-        e.preventDefault();
-        var offsetPosition = target.getBoundingClientRect().top + window.pageYOffset - 100;
-        window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
-      }
-    });
+  document.addEventListener('click', function(e) {
+    var a = e.target.closest && e.target.closest('a[href^="#"]');
+    if (!a) return;
+    var href = a.getAttribute('href');
+    if (!href || href === '#') return;
+    var target = document.querySelector(href);
+    if (!target) return;
+    e.preventDefault();
+    var offsetPosition = target.getBoundingClientRect().top + window.pageYOffset - 100;
+    window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
   });
 }, { once: true });
 </script>
