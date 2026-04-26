@@ -13,8 +13,10 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='12' fill='%23d15c00'/><text y='75' font-size='62' text-anchor='middle' x='50' fill='white' font-weight='bold' font-family='Arial'>T</text></svg>">
 <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='12' fill='%23d15c00'/><text y='75' font-size='62' text-anchor='middle' x='50' fill='white' font-weight='bold' font-family='Arial'>T</text></svg>">
 
-<!-- Hero background image — preloaded so it paints with first render -->
-<link rel="preload" as="image" href="images/drywall-repair-columbia-mo.jpg">
+<!-- Hero background image — preloaded with high priority for faster LCP -->
+<link rel="preload" as="image" href="images/drywall-repair-columbia-mo.jpg" fetchpriority="high">
+<!-- Logo preloaded to avoid layout shift and eliminate render-blocking external request -->
+<link rel="preload" as="image" href="images/logo.svg" fetchpriority="high">
 
 <!-- No external fonts — system stack used throughout for zero network overhead -->
 
@@ -102,8 +104,16 @@ nav {
 .logo {
   display: flex;
   align-items: center;
-  gap: 12px;
 }
+/* The SVG logo is a horizontal banner (≈3:1 ratio). Display it at its natural
+   proportions inside the nav — no square box, no cropping. */
+.logo-img {
+  /* Height matches nav comfortably; width is auto so the full horizontal logo shows */
+  height: 56px;
+  width: auto;
+  display: block;
+}
+/* Kept for footer fallback only */
 .logo-mark {
   width: 48px;
   height: 48px;
@@ -546,7 +556,9 @@ section.std { padding: 96px 0; }
   object-fit: cover;
   object-position: center;
   display: block;
-  min-height: 100%;
+  /* REMOVED min-height:100% — this causes repeated style/layout recalculations
+     in mobile Chromium. The parent has an explicit pixel height (300px / 220px)
+     so the image's 100% height is already deterministic. */
 }
 .ba-label {
   position: absolute;
@@ -642,8 +654,8 @@ section.std { padding: 96px 0; }
   object-fit: cover;
   object-position: center;
   display: block;
-  /* Ensure the img actually fills the container */
-  min-height: 100%;
+  /* REMOVED min-height:100% — same layout-thrash cause as ba images.
+     Parent .service-img has explicit height:200px, so this is deterministic. */
 }
 .service-body {
   padding: 28px 24px;
@@ -935,8 +947,14 @@ footer {
   font-size: 0.9rem;
 }
 
-/* content-visibility removed — causes repeated layout thrash on low-end mobile (benchmarkIndex ~237)
-   when sections contain images. The cost outweighs any deferral benefit on this device class. */
+/* content-visibility: auto for below-fold sections reduces initial style/layout cost.
+   Safe to use now that min-height:100% has been removed from all images — that was
+   the original cause of the repeated layout thrash. contain-intrinsic-size prevents
+   layout shift when section scrolls into view. */
+.why, .process, .testimonials, .cta-band, footer {
+  content-visibility: auto;
+  contain-intrinsic-size: 0 600px;
+}
 
 /* contain: layout style REMOVED from all sections.
    Even contain:layout style causes significant Style recalculation thrash
@@ -1034,8 +1052,8 @@ footer {
   .service-img img {
     /* On horizontal cards the img must stretch to the card's full height */
     height: 100%;
-    min-height: 120px;
     width: 120px;
+    /* No min-height — parent has explicit min-height:120px already */
   }
   .service-body {
     padding: 16px;
@@ -1052,7 +1070,8 @@ footer {
 }
 
 @media (max-width: 480px) {
-  .logo-text { display: none; }
+  /* Scale down logo on very small screens */
+  .logo-img { height: 40px; }
 }
 </style>
 </head>
@@ -1061,28 +1080,16 @@ footer {
 <!-- ── NAV ── -->
 <nav>
   <div class="nav-inner">
-    <!-- FIX #8: Added aria-label to logo link; changed href to "/" -->
+    <!-- FIX: Logo displayed at natural horizontal aspect ratio (3648×1182 SVG).
+         The old 48×48 square box was cropping/distorting the banner-style logo.
+         Now it renders as a full-width logo image at 56px tall with auto width. -->
     <a href="/" class="logo" aria-label="Tiger Drywall — Home">
-      <div class="logo-mark">
-        <!--
-          LOGO IMAGE SLOT
-          Replace the src below with your actual logo file path.
-          Recommended: put a square or circular version in images/logo.png (or .svg)
-          The logo-mark div is 48×48px — a transparent-background PNG or SVG works best.
-          If you don't have a logo yet, the text fallback below still looks great.
-        -->
-        <img src="images/logo.svg"
-             alt="Tiger Drywall logo"
-             width="48" height="48"
-             style="width:48px;height:48px;object-fit:contain;border-radius:8px;"
-             onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
-        <!-- Fallback "T" icon shown only if logo.png is missing -->
-        <svg viewBox="0 0 24 24" style="display:none;width:28px;height:28px;fill:#fff;"><path d="M12 3L2 12h3v8h5v-5h4v5h5v-8h3L12 3z"/></svg>
-      </div>
-      <div class="logo-text">
-        <span class="logo-name">Tiger Drywall</span>
-        <span class="logo-sub">Repair Specialists</span>
-      </div>
+      <img src="images/logo.svg"
+           alt="Tiger Drywall — Repair Specialists"
+           class="logo-img"
+           width="200" height="65"
+           fetchpriority="high"
+           decoding="sync">
     </a>
     
     <ul class="nav-links">
@@ -1218,7 +1225,7 @@ footer {
                  srcset="images/plumbing-hole-before-repair.jpg 600w"
                  sizes="(max-width: 768px) 155px, 300px"
                  alt="Drywall before repair — plumbing access hole"
-                 loading="lazy" decoding="async" width="300" height="300" style="height:100%;width:100%;object-fit:cover;">
+                 loading="eager" fetchpriority="low" decoding="async" width="300" height="300" style="height:100%;width:100%;object-fit:cover;">
             <span class="ba-label">Before</span>
           </div>
           <div class="ba-after">
@@ -1226,7 +1233,7 @@ footer {
                  srcset="images/plumbing-hole-after-repair.jpg 600w"
                  sizes="(max-width: 768px) 155px, 300px"
                  alt="Drywall after repair — smooth seamless finish"
-                 loading="lazy" decoding="async" width="300" height="300">
+                 loading="eager" fetchpriority="low" decoding="async" width="300" height="300">
             <span class="ba-label">After</span>
           </div>
           <div class="ba-divider"></div>
@@ -1244,7 +1251,7 @@ footer {
                  srcset="images/ceiling-water-damage-before.jpg 600w"
                  sizes="(max-width: 768px) 155px, 300px"
                  alt="Ceiling before repair — water damage stain"
-                 loading="lazy" decoding="async" width="300" height="300">
+                 loading="eager" fetchpriority="low" decoding="async" width="300" height="300">
             <span class="ba-label">Before</span>
           </div>
           <div class="ba-after">
@@ -1252,7 +1259,7 @@ footer {
                  srcset="images/ceiling-water-damage-after.jpg 600w"
                  sizes="(max-width: 768px) 155px, 300px"
                  alt="Ceiling after repair — clean smooth finish"
-                 loading="lazy" decoding="async" width="300" height="300">
+                 loading="eager" fetchpriority="low" decoding="async" width="300" height="300">
             <span class="ba-label">After</span>
           </div>
           <div class="ba-divider"></div>
@@ -1486,15 +1493,10 @@ footer {
   <div class="footer-grid">
     <div class="footer-brand">
       <div class="logo">
-        <div class="logo-mark">
-          <img src="images/logo.svg" alt="Tiger Drywall logo" width="48" height="48"
-               style="width:48px;height:48px;object-fit:contain;border-radius:8px;"
-               onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
-          <svg viewBox="0 0 24 24" style="display:none;width:28px;height:28px;fill:#fff;"><path d="M12 3L2 12h3v8h5v-5h4v5h5v-8h3L12 3z"/></svg>
-        </div>
-        <div class="logo-text">
-          <span class="logo-name" style="color:#fff;">Tiger Drywall</span>
-        </div>
+        <!-- Footer logo: use same natural-aspect-ratio SVG, CSS filter for dark bg -->
+        <img src="images/logo.svg" alt="Tiger Drywall logo" class="logo-img"
+             width="200" height="65" loading="lazy" decoding="async"
+             style="height:48px;filter:brightness(0) invert(1);">
       </div>
       <p>Columbia, Missouri's trusted drywall repair specialists. Serving homeowners and businesses since 2015.</p>
     </div>
@@ -1527,6 +1529,15 @@ footer {
 
 <!-- Scroll animations removed. Only smooth-scroll behavior remains. -->
 <script>
+// Register Service Worker for long-term static asset caching
+// This fixes the Lighthouse "Serve static assets with an efficient cache policy" warning.
+// GitHub Pages doesn't allow setting Cache-Control headers, so a SW is the only option.
+if ('serviceWorker' in navigator) {
+  (window.requestIdleCallback || function(cb){ setTimeout(cb, 1); })(function() {
+    navigator.serviceWorker.register('/Website/sw.js').catch(function(){});
+  });
+}
+
 // Smooth scroll for anchor links only — minimal JS, deferred to idle
 (window.requestIdleCallback || function(cb){ setTimeout(cb, 200); })(function() {
   document.querySelectorAll('a[href^="#"]').forEach(function(anchor) {
