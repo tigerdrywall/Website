@@ -13,7 +13,8 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='12' fill='%23d15c00'/><text y='75' font-size='62' text-anchor='middle' x='50' fill='white' font-weight='bold' font-family='Arial'>T</text></svg>">
 <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='12' fill='%23d15c00'/><text y='75' font-size='62' text-anchor='middle' x='50' fill='white' font-weight='bold' font-family='Arial'>T</text></svg>">
 
-<!-- Hero uses CSS gradient — no image preload needed -->
+<!-- Hero background image — preloaded so it paints with first render -->
+<link rel="preload" as="image" href="images/drywall-repair-columbia-mo.jpg">
 
 <!-- No external fonts — system stack used throughout for zero network overhead -->
 
@@ -173,11 +174,15 @@ nav {
 }
 
 /* ─────────────────────────────────────────────
-   HERO — static CSS gradient, zero image fetch
+   HERO — local background image with gradient overlay
 ───────────────────────────────────────────── */
 .hero {
   position: relative;
-  background: linear-gradient(135deg, var(--navy-dark) 0%, #1e3a5f 50%, #0f172a 100%);
+  /* Local hero image. Gradient is the fallback if image hasn't loaded yet. */
+  background: 
+    linear-gradient(135deg, rgba(15,23,42,0.82) 0%, rgba(30,58,95,0.72) 50%, rgba(15,23,42,0.88) 100%),
+    url('images/drywall-repair-columbia-mo.jpg') center center / cover no-repeat;
+  background-color: var(--navy-dark); /* solid fallback while image loads */
   padding: 60px 0 100px;
   min-height: 600px;
   display: flex;
@@ -1059,7 +1064,20 @@ footer {
     <!-- FIX #8: Added aria-label to logo link; changed href to "/" -->
     <a href="/" class="logo" aria-label="Tiger Drywall — Home">
       <div class="logo-mark">
-        <svg viewBox="0 0 24 24"><path d="M12 3L2 12h3v8h5v-5h4v5h5v-8h3L12 3z"/></svg>
+        <!--
+          LOGO IMAGE SLOT
+          Replace the src below with your actual logo file path.
+          Recommended: put a square or circular version in images/logo.png (or .svg)
+          The logo-mark div is 48×48px — a transparent-background PNG or SVG works best.
+          If you don't have a logo yet, the text fallback below still looks great.
+        -->
+        <img src="images/logo.png"
+             alt="Tiger Drywall logo"
+             width="48" height="48"
+             style="width:48px;height:48px;object-fit:contain;border-radius:8px;"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+        <!-- Fallback "T" icon shown only if logo.png is missing -->
+        <svg viewBox="0 0 24 24" style="display:none;width:28px;height:28px;fill:#fff;"><path d="M12 3L2 12h3v8h5v-5h4v5h5v-8h3L12 3z"/></svg>
       </div>
       <div class="logo-text">
         <span class="logo-name">Tiger Drywall</span>
@@ -1196,20 +1214,16 @@ footer {
         <div class="ba-images">
           <!-- Responsive srcset: mobile ba slots are ~155px wide, desktop ~300px -->
           <div class="ba-before">
-            <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=300&q=80&fm=webp"
-                 srcset="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=200&q=75&fm=webp 200w,
-                         https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=300&q=80&fm=webp 300w,
-                         https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80&fm=webp 600w"
+            <img src="images/plumbing-hole-before-repair.jpg"
+                 srcset="images/plumbing-hole-before-repair.jpg 600w"
                  sizes="(max-width: 768px) 155px, 300px"
                  alt="Drywall before repair — plumbing access hole"
                  loading="lazy" decoding="async" width="300" height="300" style="height:100%;width:100%;object-fit:cover;">
             <span class="ba-label">Before</span>
           </div>
           <div class="ba-after">
-            <img src="https://images.unsplash.com/photo-1615874959474-d609969a20ed?w=300&q=80&fm=webp"
-                 srcset="https://images.unsplash.com/photo-1615874959474-d609969a20ed?w=200&q=75&fm=webp 200w,
-                         https://images.unsplash.com/photo-1615874959474-d609969a20ed?w=300&q=80&fm=webp 300w,
-                         https://images.unsplash.com/photo-1615874959474-d609969a20ed?w=600&q=80&fm=webp 600w"
+            <img src="images/plumbing-hole-after-repair.jpg"
+                 srcset="images/plumbing-hole-after-repair.jpg 600w"
                  sizes="(max-width: 768px) 155px, 300px"
                  alt="Drywall after repair — smooth seamless finish"
                  loading="lazy" decoding="async" width="300" height="300">
@@ -1226,20 +1240,16 @@ footer {
       <div class="ba-card anim-up anim-delay-1">
         <div class="ba-images">
           <div class="ba-before">
-            <img src="https://images.unsplash.com/photo-1565538810643-b5bdb714032a?w=300&q=80&fm=webp"
-                 srcset="https://images.unsplash.com/photo-1565538810643-b5bdb714032a?w=200&q=75&fm=webp 200w,
-                         https://images.unsplash.com/photo-1565538810643-b5bdb714032a?w=300&q=80&fm=webp 300w,
-                         https://images.unsplash.com/photo-1565538810643-b5bdb714032a?w=600&q=80&fm=webp 600w"
+            <img src="images/ceiling-water-damage-before.jpg"
+                 srcset="images/ceiling-water-damage-before.jpg 600w"
                  sizes="(max-width: 768px) 155px, 300px"
                  alt="Ceiling before repair — water damage stain"
                  loading="lazy" decoding="async" width="300" height="300">
             <span class="ba-label">Before</span>
           </div>
           <div class="ba-after">
-            <img src="https://images.unsplash.com/photo-1572120360610-d971b9d7767c?w=300&q=80&fm=webp"
-                 srcset="https://images.unsplash.com/photo-1572120360610-d971b9d7767c?w=200&q=75&fm=webp 200w,
-                         https://images.unsplash.com/photo-1572120360610-d971b9d7767c?w=300&q=80&fm=webp 300w,
-                         https://images.unsplash.com/photo-1572120360610-d971b9d7767c?w=600&q=80&fm=webp 600w"
+            <img src="images/ceiling-water-damage-after.jpg"
+                 srcset="images/ceiling-water-damage-after.jpg 600w"
                  sizes="(max-width: 768px) 155px, 300px"
                  alt="Ceiling after repair — clean smooth finish"
                  loading="lazy" decoding="async" width="300" height="300">
@@ -1272,10 +1282,8 @@ footer {
         <!-- FIX #4: Converted from CSS background-image div to <img loading="lazy"> -->
         <!-- FIX #5: Added srcset — mobile displays at 120px wide, desktop at ~480px. Saves ~48KB. -->
         <div class="service-img">
-          <img src="https://images.unsplash.com/photo-1581094651181-35942459ef62?w=600&q=80&fm=webp"
-               srcset="https://images.unsplash.com/photo-1581094651181-35942459ef62?w=240&q=75&fm=webp 240w,
-                       https://images.unsplash.com/photo-1581094651181-35942459ef62?w=480&q=80&fm=webp 480w,
-                       https://images.unsplash.com/photo-1581094651181-35942459ef62?w=600&q=80&fm=webp 600w"
+          <img src="images/hole-repair-drywall-patch.jpg"
+               srcset="images/hole-repair-drywall-patch.jpg 480w"
                sizes="(max-width: 768px) 120px, (max-width: 1024px) 480px, 480px"
                alt="Hole and dent drywall repair" loading="lazy" width="600" height="200">
         </div>
@@ -1288,10 +1296,8 @@ footer {
 
       <div class="service-card anim-up anim-delay-1">
         <div class="service-img">
-          <img src="https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=600&q=80&fm=webp"
-               srcset="https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=240&q=75&fm=webp 240w,
-                       https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=480&q=80&fm=webp 480w,
-                       https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=600&q=80&fm=webp 600w"
+          <img src="images/water-damage-drywall-repair.jpg"
+               srcset="images/water-damage-drywall-repair.jpg 480w"
                sizes="(max-width: 768px) 120px, (max-width: 1024px) 480px, 480px"
                alt="Water damage drywall repair" loading="lazy" width="600" height="200">
         </div>
@@ -1304,10 +1310,8 @@ footer {
 
       <div class="service-card anim-up">
         <div class="service-img">
-          <img src="https://images.unsplash.com/photo-1565538810643-b5bdb714032a?w=600&q=80&fm=webp"
-               srcset="https://images.unsplash.com/photo-1565538810643-b5bdb714032a?w=240&q=75&fm=webp 240w,
-                       https://images.unsplash.com/photo-1565538810643-b5bdb714032a?w=480&q=80&fm=webp 480w,
-                       https://images.unsplash.com/photo-1565538810643-b5bdb714032a?w=600&q=80&fm=webp 600w"
+          <img src="images/texture-matching-drywall.jpg"
+               srcset="images/texture-matching-drywall.jpg 480w"
                sizes="(max-width: 768px) 120px, (max-width: 1024px) 480px, 480px"
                alt="Drywall texture matching service" loading="lazy" width="600" height="200">
         </div>
@@ -1320,10 +1324,8 @@ footer {
 
       <div class="service-card anim-up anim-delay-1">
         <div class="service-img">
-          <img src="https://images.unsplash.com/photo-1572120360610-d971b9d7767c?w=600&q=80&fm=webp"
-               srcset="https://images.unsplash.com/photo-1572120360610-d971b9d7767c?w=240&q=75&fm=webp 240w,
-                       https://images.unsplash.com/photo-1572120360610-d971b9d7767c?w=480&q=80&fm=webp 480w,
-                       https://images.unsplash.com/photo-1572120360610-d971b9d7767c?w=600&q=80&fm=webp 600w"
+          <img src="images/ceiling-repair-drywall.jpg"
+               srcset="images/ceiling-repair-drywall.jpg 480w"
                sizes="(max-width: 768px) 120px, (max-width: 1024px) 480px, 480px"
                alt="Ceiling drywall repair" loading="lazy" width="600" height="200" style="object-position: center top;">
         </div>
@@ -1484,7 +1486,12 @@ footer {
   <div class="footer-grid">
     <div class="footer-brand">
       <div class="logo">
-        <div class="logo-mark"><svg viewBox="0 0 24 24"><path d="M12 3L2 12h3v8h5v-5h4v5h5v-8h3L12 3z"/></svg></div>
+        <div class="logo-mark">
+          <img src="images/logo.png" alt="Tiger Drywall logo" width="48" height="48"
+               style="width:48px;height:48px;object-fit:contain;border-radius:8px;"
+               onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+          <svg viewBox="0 0 24 24" style="display:none;width:28px;height:28px;fill:#fff;"><path d="M12 3L2 12h3v8h5v-5h4v5h5v-8h3L12 3z"/></svg>
+        </div>
         <div class="logo-text">
           <span class="logo-name" style="color:#fff;">Tiger Drywall</span>
         </div>
