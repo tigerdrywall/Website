@@ -1,4 +1,4 @@
-// Tiger Drywall Service Worker v4
+// Tiger Drywall Service Worker v5
 // PURPOSE: Long-term caching for static assets on GitHub Pages, which cannot
 //          set Cache-Control headers server-side (GitHub forces max-age=600).
 //          This SW intercepts requests client-side and serves cached assets
@@ -31,7 +31,10 @@
 //     3. Reopen the site — first visit will be cold.
 // ─────────────────────────────────────────────────────────────────────
 //
-// CHANGES IN v4:
+// CHANGES IN v5:
+//   - Cache name bumped to force fresh install on devices that cached v4
+//
+// CHANGES IN v4 (preserved):
 //   - Added ?nocache=1 query bypass for testing
 //   - Added ?killsw=1 self-uninstall flow for clean device wipes
 //
@@ -40,7 +43,7 @@
 //   - PERF: install pre-caches only HTML + logo (not 1MB of images)
 //   - HTML: stale-while-revalidate; Images: cache-first
 
-const CACHE_NAME = 'tigerdrywall-v4';
+const CACHE_NAME = 'tigerdrywall-v5';
 const BASE = self.location.pathname.replace(/\/sw\.js$/, '');
 
 // Minimal install set — only what's truly critical for repeat visits.
