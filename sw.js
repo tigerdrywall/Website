@@ -1,4 +1,4 @@
-// Tiger Drywall Service Worker v3
+// Tiger Drywall Service Worker v4
 // PURPOSE: Long-term caching for static assets on GitHub Pages, which cannot
 //          set Cache-Control headers server-side (GitHub forces max-age=600).
 //          This SW intercepts requests client-side and serves cached assets
@@ -6,32 +6,41 @@
 //
 // DEPLOY TO: /Website/sw.js  (same directory as index.html)
 //
-// CHANGES IN v3:
-//   - FIX: response.clone() is now done BEFORE the body is consumed (the v2
-//          bug "Response body is already used" was caused by cloning inside
-//          an unawaited promise that ran after `return response`).
-//   - PERF: install no longer pre-caches off-screen images on first visit.
-//          Pre-caching ~1MB of images during install was competing with the
-//          LCP image for CPU/bandwidth on throttled mobile devices, adding
-//          ~2.5s to TBT. Images now cache lazily as the user scrolls and
-//          the runtime fetch handler stores them.
-//   - PERF: install only seeds the document and logo (the truly critical
-//          repeat-visit assets). Everything else is cached on-demand.
+// ─────────────────────────────────────────────────────────────────────
+// HOW TO BYPASS THE CACHE FOR TESTING (e.g. measuring real load speed):
+// ─────────────────────────────────────────────────────────────────────
+//   Option A — One-off bypass (any device, any browser):
+//     Add ?nocache=1 to the URL. Example:
+//       https://tigerdrywall.github.io/Website/?nocache=1
+//     The SW will go straight to the network for every request on that
+//     load. The cache is NOT cleared — your normal visits stay fast.
 //
-// HOW IT WORKS — plain English:
-//   1. INSTALL: Pre-cache only the bare minimum (HTML + logo).
-//   2. ACTIVATE: Old SW versions (from previous deploys) are cleaned up.
-//   3. FETCH:
-//      - Images → cache-first (instant from cache, network as fallback).
-//        On network success, the response is cloned BEFORE returning so
-//        the cache write doesn't race with the consumer.
-//      - HTML   → stale-while-revalidate (serve cache instantly if present,
-//        update cache in background). Falls back to network on cold cache.
-//      - Other  → pass-through (no interference).
+//   Option B — Kill the SW entirely on a device (e.g. your phone):
+//     Visit:  https://tigerdrywall.github.io/Website/?killsw=1
+//     This tells the SW to unregister itself and delete all caches.
+//     After it runs once, refresh the page. The site now behaves like a
+//     normal cache-less site on that device until the SW reinstalls
+//     (which it will on the next visit without the killsw flag, unless
+//     you keep using ?nocache=1).
 //
-// UPDATING CONTENT: bump CACHE_NAME (v4, v5...). Old caches auto-delete.
+//   On iPhone, private browsing does NOT prevent SW caching once the SW
+//   is registered, because the SW lives in the regular profile. To do a
+//   true cold-cache test on iOS:
+//     1. Visit ?killsw=1 once
+//     2. Settings → Safari → Clear History & Website Data
+//     3. Reopen the site — first visit will be cold.
+// ─────────────────────────────────────────────────────────────────────
+//
+// CHANGES IN v4:
+//   - Added ?nocache=1 query bypass for testing
+//   - Added ?killsw=1 self-uninstall flow for clean device wipes
+//
+// CHANGES IN v3 (preserved):
+//   - FIX: response.clone() done synchronously before body consumption
+//   - PERF: install pre-caches only HTML + logo (not 1MB of images)
+//   - HTML: stale-while-revalidate; Images: cache-first
 
-const CACHE_NAME = 'tigerdrywall-v3';
+const CACHE_NAME = 'tigerdrywall-v4';
 const BASE = self.location.pathname.replace(/\/sw\.js$/, '');
 
 // Minimal install set — only what's truly critical for repeat visits.
@@ -69,6 +78,25 @@ self.addEventListener('activate', function(event) {
   );
 });
 
+// Listen for the kill-switch from the page. When ?killsw=1 is loaded,
+// the page posts this message, and the SW deletes all caches and
+// unregisters itself.
+self.addEventListener('message', function(event) {
+  if (event.data && event.data.type === 'KILLSW') {
+    event.waitUntil(
+      caches.keys()
+        .then(function(names) { return Promise.all(names.map(function(n){ return caches.delete(n); })); })
+        .then(function() { return self.registration.unregister(); })
+        .then(function() {
+          // Force-reload all open clients so they're no longer SW-controlled
+          return self.clients.matchAll().then(function(clients) {
+            clients.forEach(function(c) { c.navigate(c.url); });
+          });
+        })
+    );
+  }
+});
+
 // Helper: stash a response in the cache. The clone MUST happen synchronously
 // (before the response body is read by the page), so we do it up-front.
 function stashInCache(request, response) {
@@ -82,6 +110,20 @@ self.addEventListener('fetch', function(event) {
   var url = new URL(event.request.url);
   if (url.origin !== self.location.origin) return;
   if (event.request.method !== 'GET') return;
+
+  // BYPASS: if the navigating page has ?nocache=1, skip the cache entirely.
+  // We detect this by checking the referrer URL (for sub-resources) and the
+  // request URL itself (for the navigation request).
+  var clientUrl;
+  try {
+    clientUrl = new URL(event.request.referrer || event.request.url);
+  } catch (e) {
+    clientUrl = url;
+  }
+  if (clientUrl.searchParams.has('nocache') || url.searchParams.has('nocache')) {
+    // Don't call respondWith — let the browser do its default network fetch.
+    return;
+  }
 
   var path = url.pathname;
   var isImage = /\.(jpg|jpeg|png|gif|webp|svg|ico)$/i.test(path);
