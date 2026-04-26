@@ -1128,12 +1128,19 @@ footer {
        A real <img> with fetchpriority="high" loads in parallel with HTML parsing,
        cutting LCP by 1-2 seconds on mobile. The gradient/texture overlays
        are applied via CSS ::before/::after pseudo-elements above this. -->
+<picture>
+  <!-- Mobile: served to screens 768px wide or narrower -->
+  <source
+    srcset="images/drywall-repair-columbia-mo-mobile.jpg"
+    media="(max-width: 768px)">
+  <!-- Desktop: full resolution for larger screens -->
   <img src="images/drywall-repair-columbia-mo.jpg"
        alt=""
        class="hero-bg"
        fetchpriority="high"
        decoding="sync"
        width="1920" height="1080">
+</picture>
   <div class="hero-inner">
     
     <div class="hero-text">
