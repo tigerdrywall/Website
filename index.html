@@ -13,48 +13,11 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='12' fill='%23d15c00'/><text y='75' font-size='62' text-anchor='middle' x='50' fill='white' font-weight='bold' font-family='Arial'>T</text></svg>">
 <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='12' fill='%23d15c00'/><text y='75' font-size='62' text-anchor='middle' x='50' fill='white' font-weight='bold' font-family='Arial'>T</text></svg>">
 
-<!-- Preload hero image — no intrinsic size hint needed since img fills via CSS inset:0 -->
-<link rel="preload" as="image"
-  href="https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=480&q=55&fm=webp&fit=crop"
-  fetchpriority="high"
-  crossorigin="anonymous"
-  imagesrcset="https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=480&q=55&fm=webp&fit=crop 480w, https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=900&q=60&fm=webp&fit=crop 900w, https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=1400&q=60&fm=webp&fit=crop 1400w"
-  imagesizes="(max-width: 768px) 100vw, (max-width: 1200px) 100vw, 1400px">
+<!-- Hero uses CSS gradient — no image preload needed -->
 
-<!-- Fonts: preconnect for DNS warmup only, load non-blocking via print media trick -->
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<!-- Load fonts completely async: print media loads without blocking render, onload switches to all -->
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@400;500;600;700&display=swap&font-display=swap" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@400;500;600;700&display=swap"></noscript>
+<!-- No external fonts — system stack used throughout for zero network overhead -->
 
-<!-- FIX #3: Override font metrics so system fallback (Arial/Arial Narrow) matches 
-     web font metrics as closely as possible, minimising CLS during font swap -->
-<style>
-  @font-face {
-    font-family: 'Inter';
-    src: local('Inter');
-    font-display: swap;
-    size-adjust: 100%;
-    ascent-override: 90%;
-    descent-override: 22%;
-    line-gap-override: 0%;
-  }
-  @font-face {
-    font-family: 'Oswald';
-    src: local('Arial Narrow'), local('ArialNarrow');
-    font-display: swap;
-    size-adjust: 103%;
-    ascent-override: 91%;
-    descent-override: 20%;
-    line-gap-override: 0%;
-  }
-  /* Prevent CLS: hero-h1 min-height locks space before Oswald loads */
-  .hero-h1 { min-height: 1em; }
-  .hero-checklist li { min-height: 1.6em; }
-</style>
-
-<!-- FIX #1: GSAP scripts REMOVED — replaced with native CSS + Intersection Observer below -->
+<!-- All animations removed for maximum mobile performance -->
 
 <style>
 /* ─────────────────────────────────────────────
@@ -98,8 +61,7 @@ html { font-size: 16px; }
 }
 
 body {
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  /* FIX #3: system-ui fallback ensures text renders instantly before Inter loads (font-display:swap) */
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
   color: var(--text);
   background: var(--white);
   overflow-x: hidden;
@@ -153,8 +115,7 @@ nav {
 .logo-mark svg { width: 28px; height: 28px; fill: #fff; }
 .logo-text { display: flex; flex-direction: column; line-height: 1.1; }
 .logo-name {
-  font-family: 'Oswald', 'Arial Narrow', sans-serif;
-  /* FIX #3: Arial Narrow is the closest system fallback to Oswald — reduces layout shift on font swap */
+  font-family: 'Impact', 'Arial Narrow', system-ui, sans-serif;
   font-size: 1.6rem;
   font-weight: 700;
   color: var(--navy-dark);
@@ -197,7 +158,7 @@ nav {
 }
 .nav-phone svg { width: 18px; height: 18px; fill: var(--orange); }
 .nav-cta {
-  background: var(--navy-dark);
+  background: var(--orange);
   color: #fff !important;
   padding: 12px 28px;
   border-radius: 6px;
@@ -207,38 +168,44 @@ nav {
   transition: background 0.2s, transform 0.2s;
 }
 .nav-cta:hover {
-  background: var(--navy);
+  background: var(--orange-hover);
   transform: translateY(-2px);
 }
 
 /* ─────────────────────────────────────────────
-   HERO
+   HERO — static CSS gradient, zero image fetch
 ───────────────────────────────────────────── */
 .hero {
   position: relative;
-  background: var(--navy-dark);
+  background: linear-gradient(135deg, var(--navy-dark) 0%, #1e3a5f 50%, #0f172a 100%);
   padding: 60px 0 100px;
-  /* min-height only needed on desktop — mobile height is driven by padding + content.
-     Using min-height:0 on mobile avoids the expensive vertical-centering layout pass
-     that recalculates when the absolutely-positioned hero-bg is present. */
   min-height: 600px;
   display: flex;
   align-items: center;
   overflow: hidden;
 }
-/* hero-bg fills the hero section absolutely.
-   contain:strict REMOVED — it forced the browser to honor intrinsic 1400x933 dims
-   for layout even when absolutely positioned, causing 4000+ms Style/Layout thrash on mobile.
-   object-fit:cover handles the stretch/squish; explicit inset:0 locks it to the hero. */
-.hero-bg {
+/* Subtle geometric texture via CSS — zero network cost */
+.hero::before {
+  content: '';
   position: absolute;
   inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center 30%;
-  opacity: 0.22;
-  z-index: 0;
+  background-image: 
+    repeating-linear-gradient(
+      45deg,
+      rgba(255,255,255,0.015) 0px,
+      rgba(255,255,255,0.015) 1px,
+      transparent 1px,
+      transparent 40px
+    );
+  pointer-events: none;
+}
+.hero::after {
+  content: '';
+  position: absolute;
+  bottom: -2px; left: 0; right: 0;
+  height: 60px;
+  background: linear-gradient(to bottom, transparent, rgba(209,92,0,0.08));
+  pointer-events: none;
 }
 .hero-inner {
   position: relative;
@@ -268,7 +235,7 @@ nav {
   border: 1px solid var(--orange-glow-strong);
 }
 .hero-h1 {
-  font-family: 'Oswald', sans-serif;
+  font-family: 'Impact', 'Arial Narrow', system-ui, sans-serif;
   font-size: clamp(2.8rem, 5vw, 4.5rem);
   font-weight: 700;
   line-height: 1.1;
@@ -317,7 +284,7 @@ nav {
 .btn-primary {
   background: #b84900;
   color: #fff;
-  font-family: 'Oswald', sans-serif;
+  font-family: 'Impact', 'Arial Narrow', system-ui, sans-serif;
   font-size: 1.1rem;
   font-weight: 700;
   letter-spacing: 0.05em;
@@ -334,7 +301,7 @@ nav {
   gap: 10px;
   background: rgba(255,255,255,0.1);
   color: #fff;
-  font-family: 'Oswald', sans-serif;
+  font-family: 'Impact', 'Arial Narrow', system-ui, sans-serif;
   font-size: 1.1rem;
   font-weight: 700;
   letter-spacing: 0.05em;
@@ -366,7 +333,7 @@ nav {
 .form-header { text-align: center; margin-bottom: 24px; }
 /* FIX #7: Changed from h3 to h2 in HTML to fix heading order */
 .form-header h2 {
-  font-family: 'Oswald', sans-serif;
+  font-family: 'Impact', 'Arial Narrow', system-ui, sans-serif;
   font-size: 2rem;
   font-weight: 700;
   color: var(--navy-dark);
@@ -381,7 +348,7 @@ nav {
   border: 2px solid var(--gray-light);
   padding: 16px;
   border-radius: 8px;
-  font-family: 'Inter', sans-serif;
+  font-family: system-ui, -apple-system, sans-serif;
   font-size: 1rem;
   color: var(--text);
   outline: none;
@@ -401,7 +368,7 @@ select.form-input {
   border: none;
   width: 100%;
   padding: 20px;
-  font-family: 'Oswald', sans-serif;
+  font-family: 'Impact', 'Arial Narrow', system-ui, sans-serif;
   font-size: 1.2rem;
   font-weight: 700;
   letter-spacing: 0.05em;
@@ -470,7 +437,7 @@ select.form-input {
   fill: none; 
 }
 .trust-card h3 {
-  font-family: 'Oswald', sans-serif;
+  font-family: 'Impact', 'Arial Narrow', system-ui, sans-serif;
   font-size: 1.25rem;
   font-weight: 700;
   color: var(--navy-dark);
@@ -501,7 +468,7 @@ section.std { padding: 96px 0; }
 #process .section-tag { color: #ff8533; }
 
 .section-h2 {
-  font-family: 'Oswald', sans-serif;
+  font-family: 'Impact', 'Arial Narrow', system-ui, sans-serif;
   font-size: clamp(2.2rem, 4vw, 3rem);
   font-weight: 700;
   text-transform: uppercase;
@@ -554,7 +521,7 @@ section.std { padding: 96px 0; }
   transform: translate(-50%, -50%);
   background: var(--orange);
   color: #fff;
-  font-family: 'Oswald', sans-serif;
+  font-family: 'Impact', 'Arial Narrow', system-ui, sans-serif;
   font-weight: 700;
   font-size: 0.85rem;
   padding: 8px 12px;
@@ -592,7 +559,7 @@ section.std { padding: 96px 0; }
 .ba-body { padding: 24px; background: var(--off-white); }
 /* FIX #7: h4 → h3 in HTML; updated selector accordingly */
 .ba-body h3 {
-  font-family: 'Oswald', sans-serif;
+  font-family: 'Impact', 'Arial Narrow', system-ui, sans-serif;
   font-size: 1.25rem;
   color: var(--navy-dark);
   text-transform: uppercase;
@@ -619,7 +586,7 @@ section.std { padding: 96px 0; }
 .btn-outline {
   background: transparent;
   color: var(--orange);
-  font-family: 'Oswald', sans-serif;
+  font-family: 'Impact', 'Arial Narrow', system-ui, sans-serif;
   font-size: 0.95rem;
   font-weight: 700;
   letter-spacing: 0.1em;
@@ -680,7 +647,7 @@ section.std { padding: 96px 0; }
   flex-grow: 1;
 }
 .service-card h3 {
-  font-family: 'Oswald', sans-serif;
+  font-family: 'Impact', 'Arial Narrow', system-ui, sans-serif;
   font-size: 1.35rem;
   font-weight: 600;
   text-transform: uppercase;
@@ -724,7 +691,7 @@ section.std { padding: 96px 0; }
   align-items: flex-start; 
 }
 .why-num {
-  font-family: 'Oswald', sans-serif;
+  font-family: 'Impact', 'Arial Narrow', system-ui, sans-serif;
   font-size: 2.5rem;
   font-weight: 700;
   color: var(--orange);
@@ -734,7 +701,7 @@ section.std { padding: 96px 0; }
 }
 /* FIX #7: h4 → h3 in HTML; updated selector accordingly */
 .why-point h3 {
-  font-family: 'Oswald', sans-serif;
+  font-family: 'Impact', 'Arial Narrow', system-ui, sans-serif;
   font-size: 1.25rem;
   font-weight: 600;
   text-transform: uppercase;
@@ -804,7 +771,7 @@ section.std { padding: 96px 0; }
 }
 /* FIX #7: h4 → h3 in HTML; updated selector accordingly */
 .process-step h3 {
-  font-family: 'Oswald', sans-serif;
+  font-family: 'Impact', 'Arial Narrow', system-ui, sans-serif;
   font-size: 1.15rem;
   font-weight: 600;
   text-transform: uppercase;
@@ -838,7 +805,7 @@ section.std { padding: 96px 0; }
   background: #f5a623;
   clip-path: polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);
 }
-.rating-text { font-family: 'Oswald', sans-serif; font-size: 1.1rem; font-weight: 600; color: var(--navy-dark); }
+.rating-text { font-family: 'Impact', 'Arial Narrow', system-ui, sans-serif; font-size: 1.1rem; font-weight: 600; color: var(--navy-dark); }
 .testi-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -857,7 +824,7 @@ section.std { padding: 96px 0; }
   border-color: var(--orange-fade);
 }
 .tcard-quote {
-  font-family: 'Oswald', sans-serif;
+  font-family: 'Impact', 'Arial Narrow', system-ui, sans-serif;
   font-size: 4rem;
   font-weight: 700;
   color: var(--orange);
@@ -884,7 +851,7 @@ section.std { padding: 96px 0; }
   border-radius: 50%;
   background: var(--navy-dark);
   display: flex; align-items: center; justify-content: center;
-  font-family: 'Oswald', sans-serif;
+  font-family: 'Impact', 'Arial Narrow', system-ui, sans-serif;
   font-size: 1rem; font-weight: 700;
   color: #fff; flex-shrink: 0;
 }
@@ -900,7 +867,7 @@ section.std { padding: 96px 0; }
   text-align: center;
 }
 .cta-band h2 {
-  font-family: 'Oswald', sans-serif;
+  font-family: 'Impact', 'Arial Narrow', system-ui, sans-serif;
   font-size: clamp(2rem, 4vw, 3rem);
   color: #fff;
   text-transform: uppercase;
@@ -910,7 +877,7 @@ section.std { padding: 96px 0; }
 .btn-dark {
   background: var(--navy-dark);
   color: #fff;
-  font-family: 'Oswald', sans-serif;
+  font-family: 'Impact', 'Arial Narrow', system-ui, sans-serif;
   font-size: 1.1rem;
   font-weight: 700;
   padding: 18px 40px;
@@ -944,7 +911,7 @@ footer {
 /* FIX #7: h5 → h3 in HTML; updated selector accordingly */
 .footer-col h3 {
   color: #fff;
-  font-family: 'Oswald', sans-serif;
+  font-family: 'Impact', 'Arial Narrow', system-ui, sans-serif;
   font-size: 1.2rem;
   text-transform: uppercase;
   margin-bottom: 24px;
@@ -963,53 +930,18 @@ footer {
   font-size: 0.9rem;
 }
 
-/* content-visibility: auto defers style+layout work for off-screen sections.
-   contain-intrinsic-size provides a size estimate so scroll height is stable.
-   This is the single biggest remaining TBT reducer after the contain:strict fix. */
-.ba-section,
-.services,
-.why,
-.process,
-.testimonials,
-.cta-band,
-footer {
-  content-visibility: auto;
-  contain-intrinsic-size: 0 600px;
-}
+/* content-visibility removed — causes repeated layout thrash on low-end mobile (benchmarkIndex ~237)
+   when sections contain images. The cost outweighs any deferral benefit on this device class. */
 
 /* contain: layout style REMOVED from all sections.
    Even contain:layout style causes significant Style recalculation thrash
    on mobile Chromium when sections contain images with dynamic sizing.
    The 4382ms Style & Layout main thread cost is not worth any theoretical gain. */
 
-/* ─────────────────────────────────────────────
-   FIX C: Above-fold elements must NEVER start hidden.
-   hero-text and hero-form-wrapper are in the initial viewport —
-   they must be visible immediately without waiting for JS.
-───────────────────────────────────────────── */
-.hero-text,
-.hero-form-wrapper {
-  opacity: 1 !important;
-  transform: none !important;
-  transition: none !important;
-  will-change: auto !important;
-}
-.anim-up {
-  opacity: 0;
-  transform: translateY(24px);
-  /* Use a single composite-friendly transition — browsers can run transform+opacity
-     on the GPU compositor thread without touching the main thread */
-  transition: opacity 0.55s ease, transform 0.55s ease;
-}
-.anim-up.is-visible {
-  opacity: 1;
-  transform: translateY(0);
-}
-/* Staggered delays — use explicit classes instead of [style*=] attribute selectors.
-   Attribute selectors are expensive to match and trigger extra style recalculations. */
-.anim-delay-1 { transition-delay: 0.1s; }
-.anim-delay-2 { transition-delay: 0.2s; }
-.anim-delay-3 { transition-delay: 0.3s; }
+/* Scroll animations removed — IntersectionObserver callbacks were contributing to TBT
+   on low-end mobile. All elements are immediately visible. */
+.anim-up { opacity: 1; transform: none; }
+.anim-delay-1, .anim-delay-2, .anim-delay-3 {}
 
 /* ─────────────────────────────────────────────
    RESPONSIVE (MOBILE OPTIMIZED)
@@ -1154,20 +1086,6 @@ footer {
 
 <!-- ── HERO ── -->
 <section class="hero">
-<!-- FIX #2 LCP: Real <img> tag replaces CSS background-image div.
-     Mobile gets w=480 (~30KB), tablet w=900, desktop w=1400 — massive LCP improvement on mobile. -->
-  <img class="hero-bg"
-    src="https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=480&q=55&fm=webp&fit=crop"
-    srcset="https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=480&q=55&fm=webp&fit=crop 480w,
-            https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=900&q=60&fm=webp&fit=crop 900w,
-            https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=1400&q=60&fm=webp&fit=crop 1400w"
-    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 100vw, 1400px"
-    alt=""
-    fetchpriority="high"
-    loading="eager"
-    decoding="sync"
-    crossorigin="anonymous"
-    aria-hidden="true">
   <div class="hero-inner">
     
     <div class="hero-text">
@@ -1600,33 +1518,10 @@ footer {
   </div>
 </footer>
 
-<!-- ── SCRIPTS ── -->
-<!-- All JS runs after paint. IntersectionObserver deferred to idle time so it
-     does not compete with LCP image decode and first paint. -->
+<!-- Scroll animations removed. Only smooth-scroll behavior remains. -->
 <script>
-// Defer scroll animation setup to idle time — after LCP has painted.
-// This ensures the main thread is free during critical paint phases.
-(window.requestIdleCallback || function(cb){ setTimeout(cb, 100); })(function() {
-  var observer = new IntersectionObserver(function(entries) {
-    entries.forEach(function(entry) {
-      if (entry.isIntersecting) {
-        var el = entry.target;
-        // Apply will-change only at the moment of animation — not upfront on all elements.
-        // This avoids creating GPU compositing layers for all off-screen elements at once.
-        el.style.willChange = 'opacity, transform';
-        el.classList.add('is-visible');
-        // Release compositing layer after animation completes
-        setTimeout(function(){ el.style.willChange = 'auto'; }, 800);
-        observer.unobserve(el);
-      }
-    });
-  }, { rootMargin: '0px 0px -8% 0px', threshold: 0.05 });
-
-  document.querySelectorAll('.anim-up').forEach(function(el) {
-    observer.observe(el);
-  });
-
-  // Smooth scroll — runs in same idle callback
+// Smooth scroll for anchor links only — minimal JS, deferred to idle
+(window.requestIdleCallback || function(cb){ setTimeout(cb, 200); })(function() {
   document.querySelectorAll('a[href^="#"]').forEach(function(anchor) {
     anchor.addEventListener('click', function(e) {
       var href = this.getAttribute('href');
